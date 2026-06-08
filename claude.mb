@@ -1,0 +1,96 @@
+# Claude - CD Digital
+
+## Projeto
+
+CD Digital - Gestao de Prontidao Operacional e um PWA para uso em quartel do Corpo de Bombeiros, focado em plantao de 24 horas, passagem de servico, escalas, livro dos motoristas, pendencias e relatorios.
+
+## Stack
+
+- React + Vite + TypeScript
+- Tailwind CSS
+- React Router
+- Supabase Auth
+- Supabase PostgreSQL
+- Supabase Storage
+- PWA mobile first
+
+## Identidade do produto
+
+Use linguagem operacional do Corpo de Bombeiros. Evite textos genericos como "Task", "Project" ou "Employee".
+
+Termos corretos:
+
+- Prontidao
+- Cabo de Dia
+- Escala
+- Escala Horaria
+- Viatura
+- Pendencia
+- Passagem de Servico
+- Livro dos Motoristas
+- Setor do Quartel
+- Relato de Viatura
+
+## Prioridade de UX
+
+- Mobile first
+- Cards grandes
+- Poucos cliques
+- Botoes faceis de tocar
+- Status claros
+- Tela limpa
+- Fluxo rapido para preenchimento durante plantao
+
+## Regras de negocio essenciais
+
+- Cada plantao tem 24 horas e deve ser vinculado a uma prontidao.
+- As prontidoes sao Amarela, Azul e Verde.
+- Somente Sd e Cb entram automaticamente na escala horaria.
+- Sgt e Oficiais nao entram na escala horaria automatica.
+- Sgt e Oficiais podem aparecer apenas em ronda, se houver suporte futuro.
+- Checklist com status "Com alteracao" deve gerar pendencia.
+- Relato de viatura com "Com novidades" deve gerar pendencia vinculada a viatura.
+- Relato de viatura "Sem novidades" deve manter o relato anterior apenas como referencia historica.
+- Toda pendencia precisa manter historico de atualizacoes.
+- Todo registro deve manter data e hora.
+
+## Modulos do MVP
+
+- Login
+- Dashboard
+- Escala do Dia
+- Escala Horaria
+- Passagem de Servico
+- Checklist do Quartel
+- Livro dos Motoristas
+- Relato de Viaturas
+- Pendencias
+- Relatorios
+- Administracao
+- Viaturas
+- Setores do Quartel
+
+## Perfis
+
+- Admin: gerencia usuarios, viaturas, setores e prontidoes.
+- Cabo de Dia: cria passagem de servico, cria escala, acompanha pendencias e consulta relatorios.
+- Motorista: preenche livro dos motoristas e consulta viaturas.
+- Militar comum: consulta escala e pendencias.
+
+## Banco de dados
+
+O schema principal esta em `supabase/schema.sql`. Ele deve concentrar tabelas, RLS, triggers, seeds iniciais e regras criticas que nao podem depender apenas do frontend.
+
+Ao alterar regras de negocio, atualize tambem o SQL quando a regra precisar ser protegida no banco.
+
+## Supabase
+
+Nunca exponha service role key no frontend. Use somente variaveis publicas Vite:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+## IA
+
+O projeto deve ficar preparado para OpenAI API ou Claude API no futuro, mas nao integrar IA nesta fase do MVP.
+

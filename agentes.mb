@@ -1,0 +1,75 @@
+# Agentes - CD Digital
+
+## Instrucao geral
+
+Este repositorio implementa o CD Digital - Gestao de Prontidao Operacional. Trabalhe de forma objetiva, mantendo o foco no MVP operacional para uso em celular durante plantao de 24 horas.
+
+## Como trabalhar neste projeto
+
+- Preserve a identidade operacional do Corpo de Bombeiros.
+- Priorize clareza, funcionalidade e fluxo rapido.
+- Evite complexidade fora do MVP.
+- Mantenha componentes reutilizaveis em `src/components`.
+- Mantenha telas em `src/pages`.
+- Mantenha regras compartilhadas em `src/contexts`.
+- Mantenha tipos de dominio em `src/types`.
+- Mantenha dados iniciais/demo em `src/data`.
+- Mantenha configuracao Supabase em `src/lib/supabase.ts`.
+- Mantenha schema e regras de banco em `supabase/schema.sql`.
+
+## Nao fazer
+
+- Nao integrar OpenAI API agora.
+- Nao integrar Claude API agora.
+- Nao criar backend separado alem do Supabase.
+- Nao substituir termos operacionais por linguagem generica.
+- Nao remover regras de escala horaria Sd/Cb.
+- Nao permitir que alteracoes em checklist ou viaturas deixem de gerar pendencias.
+- Nao expor chave `service_role` no frontend.
+
+## Comandos
+
+Use estes comandos quando as dependencias estiverem instaladas:
+
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+Observacao: se `npm` global estiver quebrado nesta maquina, pode ser necessario usar `corepack pnpm install` ou corrigir a instalacao local do Node/npm antes do build.
+
+## Regras de UX
+
+- Interface mobile first.
+- Cards grandes e legiveis.
+- Botoes com altura confortavel para toque.
+- Status com cores claras.
+- Formularios curtos.
+- Navegacao simples.
+- Evitar telas poluidas.
+
+## Regras de negocio obrigatorias
+
+- Prontidoes: Amarela, Azul e Verde.
+- Plantao: 24 horas.
+- Escala horaria: apenas Sd e Cb entram automaticamente.
+- Passagem de Servico: checklist por setor do quartel.
+- Checklist com "Com alteracao": cria pendencia.
+- Livro dos Motoristas com "Com novidades": cria pendencia.
+- Pendencias: Aberta, Em andamento, Resolvida, Arquivada.
+- Historico de pendencias e obrigatorio.
+
+## Referencias visuais
+
+As telas devem seguir inspiracao mobile first com cards grandes, hierarquia clara, listas com status e botoes faceis de tocar. As imagens de referencia anexadas pelo usuario sao inspiracao visual, nao devem ser copiadas literalmente.
+
+## Entrega esperada
+
+Ao concluir alteracoes, informe:
+
+- Arquivos modificados.
+- Regras de negocio afetadas.
+- Validacao realizada.
+- Qualquer bloqueio de ambiente, especialmente instalacao de dependencias ou build.
+
