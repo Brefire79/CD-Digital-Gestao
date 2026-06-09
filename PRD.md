@@ -55,7 +55,7 @@ Ao final do preenchimento da escala, o sistema deve gerar a escala diaria comple
   - UR
   - ABS / Auto Bomba
   - Canil
-- Dados de Comandante da Prontidao e Adjunto de Dia para geracao dos rondantes.
+- Dados de Oficial de Area, Comandante da Prontidao e Adjunto de Dia devem ser campos independentes, preenchidos ou conferidos pelo Cabo de Dia.
 - Alteracoes de Servico e Manutencao do Quartel, preenchidas pelo Cabo de Dia conforme o dia.
 
 ### Regras de Calculo
@@ -104,11 +104,11 @@ Excecao:
 
 ### Rondantes
 
-- A lista de rondantes deve ser gerada automaticamente usando os campos:
-  - Comandante da Prontidao.
-  - Adjunto de Dia.
-- Se Comandante da Prontidao e Adjunto de Dia forem a mesma pessoa, a ronda fica com o mesmo militar durante todo o periodo.
-- Rondantes devem ser Sargento/Comandante conforme a pratica operacional.
+- A lista de rondantes deve considerar somente militares Sgt conforme a pratica operacional.
+- Oficiais, Sd e Cb nao devem ser usados automaticamente como rondantes.
+- Se houver apenas um Sgt disponivel, a ronda fica com o mesmo militar durante todo o periodo.
+- Se houver dois ou mais Sgt disponiveis, o sistema divide o periodo de ronda em duas faixas.
+- O Cabo de Dia deve poder ajustar manualmente os rondantes antes de gerar o PDF.
 
 ### Viaturas e Guarnicoes
 
@@ -120,6 +120,8 @@ Excecao:
   - Estagiario.
 - O app deve permitir colunas dinamicas de viaturas conforme o plantao.
 - A escala horaria automatica considera apenas integrantes elegiveis das viaturas UR, ABS/AB e Canil.
+- Demais viaturas do documento podem aparecer na distribuicao do plantao, mas nao entram nos criterios da escala horaria.
+- A montagem da distribuicao das viaturas deve ser definida pelo Cabo de Dia; o sistema nao deve preencher nomes aleatorios nessa tabela.
 
 ### Opcoes Padrao de OBS
 

@@ -125,9 +125,19 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
     },
     generateEscalaHoraria(options) {
       const inicioNoturno = options?.inicioNoturno ?? '23:00';
-      const elegiveis = funcoes.filter((funcao) => funcao.entra_escala_horaria && allowsEscalaHoraria(funcao.graduacao));
-      const quantidadeMilitares = Math.max(1, Math.min(options?.quantidadeMilitares ?? elegiveis.length, elegiveis.length));
-      const militaresDaNoite = elegiveis.slice(0, quantidadeMilitares);
+      const criteriosHora = ['Motorista UR', 'Motorista AB', 'Motorista Canil'];
+      const elegiveisDaHora = funcoes.filter((funcao) => {
+        const text = funcao.funcao.toLowerCase();
+        const pertenceViaturaHora = /\bur\b/.test(text) || /\bab\b/.test(text) || text.includes('abs') || text.includes('canil') || /\bcn\b/.test(text);
+        return funcao.entra_escala_horaria && allowsEscalaHoraria(funcao.graduacao) && pertenceViaturaHora;
+      });
+      const limiteOperacional = Math.max(1, elegiveisDaHora.length || criteriosHora.length);
+      const quantidadeMilitares = Math.max(1, Math.min(options?.quantidadeMilitares ?? limiteOperacional, limiteOperacional));
+      const militaresDaNoite = Array.from({ length: quantidadeMilitares }, (_, index) => elegiveisDaHora[index] ?? {
+        militar_nome: `Definir ${criteriosHora[index % criteriosHora.length]}`,
+        graduacao: '',
+        funcao: criteriosHora[index % criteriosHora.length]
+      });
       const telegrafista = funcoes.find((funcao) => funcao.funcao.toLowerCase().includes('telegraf')) ?? {
         militar_nome: escala.telegrafista,
         graduacao: '',
@@ -163,7 +173,7 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
           militar_nome: funcao.militar_nome,
           graduacao: funcao.graduacao,
           funcao: funcao.funcao,
-          observacao: 'Rotativo'
+          observacao: index < criteriosHora.length ? criteriosHora[index] : 'Rotativo'
         };
       });
 

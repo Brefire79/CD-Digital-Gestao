@@ -16,14 +16,7 @@ const dayRows = [
   { horario_inicio: '18:00', horario_fim: '22:00', militar_nome: 'Telegrafista', funcao: 'Telegrafista', observacao: 'Fixo' }
 ];
 
-function buildPreviewNightRows(items: EscalaHorariaItem[], elegiveis: EscalaFuncao[], inicioNoturno: '22:00' | '23:00') {
-  if (items.length > 0) return items;
-
-  const baseNames = elegiveis.length > 0 ? elegiveis : [
-    { id: 'demo-1', escala_id: 'demo', militar_nome: 'Motorista UR', graduacao: 'Sd', funcao: 'Motorista UR', entra_escala_horaria: true },
-    { id: 'demo-2', escala_id: 'demo', militar_nome: 'Motorista AB', graduacao: 'Cb', funcao: 'Motorista AB', entra_escala_horaria: true },
-    { id: 'demo-3', escala_id: 'demo', militar_nome: 'Motorista CN', graduacao: 'Sd', funcao: 'Motorista CN', entra_escala_horaria: true }
-  ];
+function buildPreviewNightRows(inicioNoturno: '22:00' | '23:00') {
   const startsAt23 = inicioNoturno === '23:00';
   const rows: EscalaHorariaItem[] = [];
 
@@ -45,16 +38,16 @@ function buildPreviewNightRows(items: EscalaHorariaItem[], elegiveis: EscalaFunc
     : [['22:00', '23:08'], ['23:08', '00:16'], ['00:16', '01:24'], ['01:24', '02:32'], ['02:32', '03:40'], ['03:40', '04:48'], ['04:48', '06:00']];
 
   slots.forEach(([inicio, fim], index) => {
-    const militar = baseNames[index % baseNames.length];
+    const criterio = index === 0 ? 'Motorista UR' : index === 1 ? 'Motorista AB' : index === 2 ? 'Motorista Canil' : 'Rotativo';
     rows.push({
       id: `preview-${inicio}`,
       escala_id: 'preview',
       horario_inicio: inicio,
       horario_fim: fim,
-      militar_nome: militar.militar_nome,
-      graduacao: militar.graduacao,
-      funcao: militar.funcao,
-      observacao: index === 0 ? 'Motorista UR' : index === 1 ? 'Motorista AB' : index === 2 ? 'Motorista CN' : 'Rotativo'
+      militar_nome: index < 3 ? `Definir ${criterio}` : 'Definir pelo Cabo de Dia',
+      graduacao: '',
+      funcao: criterio,
+      observacao: criterio
     });
   });
 
@@ -80,25 +73,46 @@ function hasGraduacao(row: unknown): row is Pick<EscalaHorariaItem, 'graduacao' 
   return typeof row === 'object' && row !== null && 'graduacao' in row && typeof (row as { graduacao?: unknown }).graduacao === 'string';
 }
 
+function formatMilitar(item: Pick<EscalaFuncao, 'graduacao' | 'militar_nome'>) {
+  return `${item.graduacao} PM ${item.militar_nome}`;
+}
+
+function isSargento(graduacao: string) {
+  const normalized = graduacao.toLowerCase();
+  return normalized.includes('sgt') || normalized.includes('sargento');
+}
+
+function isViaturaDaEscalaHoraria(viatura: { prefixo: string; tipo: string }) {
+  const text = `${viatura.prefixo} ${viatura.tipo}`.toLowerCase();
+  return /\bur\b/.test(text) || /\bab\b/.test(text) || text.includes('abs') || text.includes('canil') || /\bcn\b/.test(text);
+}
+
 export function EscalaHoraria() {
   const { escala, funcoes, escalaHoraria, generateEscalaHoraria, prontidoes, viaturas } = useOperational();
   const [inicioNoturno, setInicioNoturno] = useState<'22:00' | '23:00'>('23:00');
   const elegiveis = funcoes.filter((item) => item.entra_escala_horaria);
   const bloqueados = funcoes.filter((item) => !item.entra_escala_horaria);
-  const [quantidadeMilitares, setQuantidadeMilitares] = useState(Math.max(1, elegiveis.length));
-  const quantidadeValida = Math.max(1, Math.min(quantidadeMilitares, Math.max(1, elegiveis.length)));
+  const quantidadeMaximaSugerida = Math.max(1, elegiveis.length, 3);
+  const [quantidadeMilitares, setQuantidadeMilitares] = useState(quantidadeMaximaSugerida);
+  const quantidadeValida = Math.max(1, Math.min(quantidadeMilitares, quantidadeMaximaSugerida));
   const prontidao = prontidoes.find((item) => item.id === escala.prontidao_id)?.nome ?? 'Amarela';
-  const previewNightRows = buildPreviewNightRows(escalaHoraria, elegiveis, inicioNoturno);
+  const previewNightRows = buildPreviewNightRows(inicioNoturno);
   const documentoRows = [...dayRows, ...previewNightRows];
   const comandante = escala.comandante || 'Cmt da Prontidão';
-  const adjuntoDia = funcoes.find((item) => item.funcao.toLowerCase().includes('adjunto'))?.militar_nome ?? escala.chefe_motoristas;
-  const rondantes = comandante === adjuntoDia
-    ? [{ horario_inicio: '00:00', horario_fim: '06:00', militar_nome: comandante }]
+  const oficialArea = 'Definir Tenente';
+  const adjuntoDia = funcoes.find((item) => item.funcao.toLowerCase().includes('adjunto'));
+  const sargentosRonda = funcoes.filter((item) => isSargento(item.graduacao));
+  const primeiroRondante = sargentosRonda[0] ? formatMilitar(sargentosRonda[0]) : 'Definir Sgt rondante';
+  const segundoRondante = sargentosRonda[1] ? formatMilitar(sargentosRonda[1]) : primeiroRondante;
+  const rondantes = primeiroRondante === segundoRondante
+    ? [{ horario_inicio: '00:00', horario_fim: '06:00', militar_nome: primeiroRondante }]
     : [
-        { horario_inicio: '00:00', horario_fim: '03:00', militar_nome: comandante },
-        { horario_inicio: '03:00', horario_fim: '06:00', militar_nome: adjuntoDia }
+        { horario_inicio: '00:00', horario_fim: '03:00', militar_nome: primeiroRondante },
+        { horario_inicio: '03:00', horario_fim: '06:00', militar_nome: segundoRondante }
       ];
-  const viaturasDocumento = viaturas.slice(0, 4);
+  const viaturasAtivas = viaturas.filter((viatura) => viatura.ativa);
+  const viaturasHora = viaturasAtivas.filter(isViaturaDaEscalaHoraria);
+  const viaturasDocumento = viaturasAtivas.slice(0, 4);
   const resumo = useMemo(() => {
     const inicio = inicioNoturno === '22:00' ? '22h00' : '23h00';
     return `${quantidadeValida} militares dividindo o período de ${inicio} às 06h00. Telegrafista permanece fixo no último horário das 06h00 às 07h30.`;
@@ -110,7 +124,7 @@ export function EscalaHoraria() {
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           <div>
             <h3 className="text-lg font-bold">Escala horária rotativa</h3>
-            <p className="text-sm text-slate-400">Somente Sd e Cb entram automaticamente. Sgt e Oficiais ficam fora, salvo inclusão manual pelo Cabo de Dia.</p>
+            <p className="text-sm text-slate-400">Somente Sd e Cb das VTRs UR, ABS/AB e Canil entram automaticamente. Sgt e Oficiais ficam fora, salvo inclusão manual pelo Cabo de Dia.</p>
             <p className="mt-2 rounded-lg bg-slate-950 p-3 text-sm text-slate-300">{resumo}</p>
           </div>
           <div className="grid gap-3">
@@ -122,7 +136,7 @@ export function EscalaHoraria() {
               label="Quantidade de militares"
               type="number"
               min={1}
-              max={Math.max(1, elegiveis.length)}
+              max={quantidadeMaximaSugerida}
               value={quantidadeMilitares}
               onChange={(event) => setQuantidadeMilitares(Number(event.target.value))}
             />
@@ -132,7 +146,8 @@ export function EscalaHoraria() {
       </Card>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <h3 className="mb-3 font-bold">Militares elegíveis</h3>
+          <h3 className="mb-3 font-bold">Pré-elegíveis por graduação</h3>
+          <p className="mb-3 text-sm text-slate-400">Entram na escala de hora somente se estiverem nas guarnições UR, ABS/AB ou Canil.</p>
           <div className="grid gap-2">
             {elegiveis.map((item) => (
               <div key={item.id} className="flex items-center justify-between rounded-lg bg-slate-950 p-3">
@@ -186,7 +201,7 @@ export function EscalaHoraria() {
                 <tbody>
                   <tr>
                     <td className="border border-slate-500 font-bold">Oficial de Área 1º GB</td>
-                    <td className="border border-slate-500">{comandante}</td>
+                    <td className="border border-slate-500">{oficialArea}</td>
                     <td className="border border-slate-500 font-bold">Telegrafista</td>
                     <td className="border border-slate-500">{escala.telegrafista}</td>
                   </tr>
@@ -198,7 +213,7 @@ export function EscalaHoraria() {
                   </tr>
                   <tr>
                     <td className="border border-slate-500 font-bold">Adjunto de Dia</td>
-                    <td className="border border-slate-500">{adjuntoDia}</td>
+                    <td className="border border-slate-500">{adjuntoDia ? formatMilitar(adjuntoDia) : 'Definir pelo Cabo de Dia'}</td>
                     <td className="border border-slate-500 font-bold">Ch. dos Motoristas</td>
                     <td className="border border-slate-500">{escala.chefe_motoristas}</td>
                   </tr>
@@ -250,6 +265,9 @@ export function EscalaHoraria() {
                   ))}
                 </tbody>
               </table>
+              <div className="border border-slate-500 bg-blue-50 px-2 py-1 text-center font-bold">
+                Critério da escala de hora: somente UR, ABS/AB e Canil entram no rodízio. Viaturas consideradas: {viaturasHora.map((viatura) => viatura.prefixo).join(', ') || 'Definir UR, ABS/AB e Canil'}.
+              </div>
               <table className="w-full border-collapse text-center">
                 <thead>
                   <tr className="bg-blue-100">
@@ -261,10 +279,9 @@ export function EscalaHoraria() {
                   {['CMT', 'MOT', 'AUX', 'AUX', 'Estagiário'].map((funcao, index) => (
                     <tr key={funcao + index}>
                       <td className="border border-slate-500 font-bold">{funcao}</td>
-                      {viaturasDocumento.map((viatura, viaturaIndex) => {
-                        const militar = funcoes[(index + viaturaIndex) % Math.max(1, funcoes.length)];
-                        return <td key={`${viatura.id}-${funcao}`} className="border border-slate-500">{militar ? `${militar.graduacao} PM ${militar.militar_nome}` : ''}</td>;
-                      })}
+                      {viaturasDocumento.map((viatura) => (
+                        <td key={`${viatura.id}-${funcao}`} className="border border-slate-500">Definir pelo Cabo de Dia</td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
