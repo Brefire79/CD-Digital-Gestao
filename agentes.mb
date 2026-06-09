@@ -60,7 +60,12 @@ Observacao: se `npm` global estiver quebrado nesta maquina, pode ser necessario 
 - A escala completa deve contemplar 07h30 as 22h00, 22h00/23h00 as 06h00 e 06h00 as 07h30.
 - A escala horaria automatica considera integrantes elegiveis das viaturas UR, ABS/AB e Canil.
 - A sequencia noturna prioriza Motorista UR, Motorista AB e Motorista Canil, respeitando exclusao automatica de Sgt e Oficiais.
-- Rondantes sao gerados a partir de Comandante da Prontidao e Adjunto de Dia.
+- Rondantes consideram somente Sgt automaticamente; Oficiais, Sd e Cb nao entram automaticamente em rondantes.
+- Oficial de Area, Comandante da Prontidao e Adjunto de Dia sao campos independentes.
+- A tela Escala do Dia e o ponto principal para montar guarnicoes por viatura.
+- Cada viatura pode ter CMT, MOT, AUX, AUX e Estagiario.
+- A distribuicao de viaturas no documento deve ser definida pelo Cabo de Dia, sem preenchimento aleatorio de nomes.
+- O Dashboard deve manter data e hora do plantao em destaque, com fonte grande para consulta rapida.
 - PDF futuro deve ser A4 vertical em uma pagina, com assinatura desenhada na tela e layout do documento fisico.
 - Passagem de Servico: checklist por setor do quartel.
 - Checklist com "Com alteracao": cria pendencia.

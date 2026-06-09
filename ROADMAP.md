@@ -2,9 +2,10 @@
 
 ## Fase 1 - Base da escala completa
 
-- Modelar guarnicoes por viatura dinamica.
-- Adicionar funcoes fixas por viatura: CMT, MOT, AUX, AUX e Estagiario.
-- Identificar viaturas elegiveis para quarto de hora: UR, ABS/AB e Canil.
+- [Implementado] Modelar guarnicoes por viatura dinamica na tela Escala do Dia.
+- [Implementado] Adicionar funcoes fixas por viatura: CMT, MOT, AUX, AUX e Estagiario.
+- [Implementado] Identificar viaturas elegiveis para quarto de hora: UR, ABS/AB e Canil.
+- [Implementado] Adicionar campos independentes de Oficial de Area, Comandante da Prontidao, Adjunto de Dia, Cabo de Dia, Telegrafista e Chefe dos Motoristas.
 - Permitir preenchimento do horario diurno de 07h30 as 22h00.
 - Sugerir automaticamente 2 escalas para auxiliares do Auto Bomba e 1 sugestao para Canil.
 - Permitir horario de 17h00 as 18h00 em aberto para escolha do Cabo de Dia.
@@ -21,10 +22,16 @@
 
 ## Fase 3 - Rondantes e campos do documento
 
-- Gerar rondantes automaticamente com Comandante da Prontidao e Adjunto de Dia.
-- Se forem a mesma pessoa, manter o mesmo militar no periodo inteiro.
+- [Atualizado] Gerar rondantes automaticamente somente com Sgt.
+- Oficiais, Sd e Cb nao devem entrar automaticamente em rondantes.
 - Criar opcoes padrao de OBS: Fixo, Rotativo, Motorista UR, Motorista AB, Motorista CN, Revezamento 2x1, Alternado pelo Canil e Telegrafista.
-- Incluir Alteracoes de Servico e Manutencao do Quartel como campos do preenchimento da escala do dia.
+- [Implementado parcial] Incluir Alteracoes de Servico e Manutencao do Quartel como campo do preenchimento da escala do dia.
+
+## Fase 3.1 - Dashboard operacional
+
+- [Implementado] Exibir data e hora do plantao em fonte grande.
+- [Implementado] Exibir prontidao atual, cor operacional e status.
+- [Implementado] Permitir abrir/ocultar calendario 24x48 e salvar preferencia local.
 
 ## Fase 4 - PDF operacional
 

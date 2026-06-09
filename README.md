@@ -59,7 +59,10 @@ O SQL inclui tabelas, seeds de prontidões e setores, RLS, bucket privado para a
 - `Sgt` e Oficiais ficam fora da escala horária automática.
 - Escala horária noturna permite início às `22h00` ou `23h00`, definido pelo Cabo de Dia.
 - Se iniciar às `23h00`, o trecho `22h00 às 23h00` fica como posto fixo do Telegrafista.
-- O último horário fixo `06h00 às 07h00` é sempre do Telegrafista.
+- O último horário fixo `06h00 às 07h30` é sempre do Telegrafista.
+- A escala horária automática considera somente integrantes elegíveis vinculados às VTRs `UR`, `ABS/AB` e `Canil`.
+- A tela `Escala do Dia` monta cabeçalho, funções rápidas e guarnições por viatura com `CMT`, `MOT`, `AUX`, `AUX` e `Estagiário`.
+- O Dashboard exibe data e hora do plantão em fonte grande e mantém o calendário 24x48 ocultável.
 - Cada plantão é vinculado a uma prontidão.
 - Registros no banco mantêm data e hora.
 

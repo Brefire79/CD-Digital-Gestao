@@ -47,14 +47,14 @@ Termos corretos:
 - As prontidoes sao Amarela, Azul e Verde.
 - Somente Sd e Cb entram automaticamente na escala horaria.
 - Sgt e Oficiais nao entram na escala horaria automatica.
-- Sgt e Oficiais podem aparecer apenas em ronda, se houver suporte futuro.
 - A escala horaria noturna pode iniciar as 22h00 ou 23h00, conforme decisao do Cabo de Dia.
 - Se iniciar as 23h00, o horario de 22h00 as 23h00 fica com o Telegrafista como posto fixo.
 - O ultimo horario fixo, de 06h00 as 07h30, e sempre do militar na funcao de Telegrafista.
 - O miolo da noite deve ser dividido automaticamente e de forma equilibrada entre Sd/Cb selecionados das viaturas UR, ABS/AB e Canil.
 - A sequencia noturna prioriza Motorista UR, Motorista AB e Motorista Canil; se o motorista do Canil for Sgt ou superior, a escala cai nos demais integrantes elegiveis da guarnicao do Canil.
 - A escala completa tambem deve cobrir a faixa diurna de 07h30 as 22h00, com sugestoes para auxiliares do Auto Bomba e Canil.
-- Rondantes sao gerados com Comandante da Prontidao e Adjunto de Dia; se forem a mesma pessoa, ela cobre o periodo todo.
+- Rondantes devem considerar somente Sgt automaticamente; Oficiais, Sd e Cb nao devem ser usados automaticamente como rondantes.
+- Oficial de Area, Comandante da Prontidao e Adjunto de Dia sao campos independentes e devem ser preenchidos ou conferidos pelo Cabo de Dia.
 - O PDF futuro deve ser A4 vertical em uma pagina, com assinatura desenhada na tela e layout proximo ao documento fisico.
 - Modelos devem ser salvos por prontidao e futuramente em Google Drive/Google Sheets.
 - Checklist com status "Com alteracao" deve gerar pendencia.
@@ -62,6 +62,20 @@ Termos corretos:
 - Relato de viatura "Sem novidades" deve manter o relato anterior apenas como referencia historica.
 - Toda pendencia precisa manter historico de atualizacoes.
 - Todo registro deve manter data e hora.
+
+## Estado atual implementado
+
+- Dashboard mobile first com card de prontidao atual, cor operacional, status, botao para abrir/ocultar calendario 24x48 e relogio/data do plantao em fonte grande.
+- Calendario 24x48 fica fechado por padrao e pode permanecer oculto via `localStorage`.
+- Escala do Dia e o ponto principal para montar o cabecalho do servico e as guarnicoes por viatura.
+- Escala do Dia permite lancar militar por VTR ativa nas funcoes CMT, MOT, AUX, AUX e Estagiario.
+- Escala do Dia permite funcoes rapidas de cabecalho: Cabo de Dia, Telegrafia, Chefe dos Motoristas e Adjunto de Dia.
+- Militares lancados podem ser removidos para corrigir escala durante montagem.
+- Escala Horaria possui previa visual do documento A4 completo, com faixa diurna, faixa noturna, rondantes, distribuicao de viaturas, alteracoes e assinaturas.
+- Previa do documento nao deve preencher nomes aleatorios na distribuicao de viaturas; quando faltar dado, usar "Definir pelo Cabo de Dia".
+- Geracao da escala horaria considera apenas funcoes elegiveis associadas a UR, ABS/AB e Canil; se ainda nao houver guarnicao vinculada, usa placeholders "Definir Motorista UR/AB/Canil".
+- Viaturas possuem cadastro com editar, excluir e manter historico/transferencia.
+- PRD, schema Supabase e arquivos de orientacao devem ser mantidos sincronizados quando regra operacional mudar.
 
 ## Modulos do MVP
 

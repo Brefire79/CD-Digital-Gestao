@@ -1,0 +1,21 @@
+# Agents - CD Digital
+
+Este arquivo existe como alias para ferramentas que procuram `agents.mb`.
+
+Use o arquivo principal `agentes.mb` para as instrucoes completas em portugues.
+
+Resumo obrigatorio:
+
+- Projeto: CD Digital - Gestao de Prontidao Operacional.
+- Stack: React + Vite + TypeScript + Tailwind + Supabase.
+- Linguagem: operacional do Corpo de Bombeiros.
+- UX: mobile first, cards grandes, poucos cliques, status claros.
+- Escala do Dia: montagem do cabecalho e guarnicoes por viatura.
+- Funcoes por viatura: CMT, MOT, AUX, AUX e Estagiario.
+- Escala Horaria: somente Sd/Cb elegiveis das VTRs UR, ABS/AB e Canil.
+- Sgt e Oficiais nao entram automaticamente na escala horaria.
+- Rondantes: somente Sgt automaticamente.
+- Oficial de Area, Comandante da Prontidao e Adjunto de Dia sao campos independentes.
+- Dashboard: data e hora do plantao em fonte grande; calendario 24x48 ocultavel.
+- PDF futuro: A4 vertical em uma pagina, semelhante ao documento fisico.
+- Sempre atualizar `PRD.md`, `README.md`, `ROADMAP.md`, `claude.mb` e `agentes.mb` quando regras operacionais mudarem.
