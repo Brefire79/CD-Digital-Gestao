@@ -48,6 +48,10 @@ Termos corretos:
 - Somente Sd e Cb entram automaticamente na escala horaria.
 - Sgt e Oficiais nao entram na escala horaria automatica.
 - Sgt e Oficiais podem aparecer apenas em ronda, se houver suporte futuro.
+- A escala horaria noturna pode iniciar as 22h00 ou 23h00, conforme decisao do Cabo de Dia.
+- Se iniciar as 23h00, o horario de 22h00 as 23h00 fica com o Telegrafista como posto fixo.
+- O ultimo horario fixo, de 06h00 as 07h00, e sempre do militar na funcao de Telegrafista.
+- O miolo da noite deve ser dividido automaticamente e de forma equilibrada entre Sd/Cb selecionados.
 - Checklist com status "Com alteracao" deve gerar pendencia.
 - Relato de viatura com "Com novidades" deve gerar pendencia vinculada a viatura.
 - Relato de viatura "Sem novidades" deve manter o relato anterior apenas como referencia historica.
@@ -83,6 +87,10 @@ O schema principal esta em `supabase/schema.sql`. Ele deve concentrar tabelas, R
 
 Ao alterar regras de negocio, atualize tambem o SQL quando a regra precisar ser protegida no banco.
 
+## PRD
+
+O PRD versionado esta em `PRD.md`. Atualize esse arquivo sempre que regras operacionais forem formalizadas.
+
 ## Supabase
 
 Nunca exponha service role key no frontend. Use somente variaveis publicas Vite:
@@ -93,4 +101,3 @@ Nunca exponha service role key no frontend. Use somente variaveis publicas Vite:
 ## IA
 
 O projeto deve ficar preparado para OpenAI API ou Claude API no futuro, mas nao integrar IA nesta fase do MVP.
-

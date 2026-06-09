@@ -17,7 +17,7 @@ interface OperationalContextValue {
   saveSetor: (setor: Omit<SetorQuartel, 'id'> & { id?: string }) => void;
   saveEscala: (escala: Escala) => void;
   saveFuncao: (funcao: Omit<EscalaFuncao, 'id' | 'escala_id'>) => void;
-  generateEscalaHoraria: () => void;
+  generateEscalaHoraria: (options?: { inicioNoturno?: '22:00' | '23:00'; quantidadeMilitares?: number }) => void;
   updateChecklist: (item: ChecklistItem) => void;
   updateRelato: (relato: RelatoViatura) => void;
   updatePendencia: (id: string, status: Pendencia['status'], descricao: string) => void;
@@ -60,6 +60,13 @@ function normalizeViatura(viatura: Viatura): Viatura {
     estacao_atual: viatura.estacao_atual || 'EB Centro',
     status_operacional: viatura.status_operacional || (viatura.ativa ? 'Rodando' : 'Histórico')
   };
+}
+
+function formatTime(totalMinutes: number) {
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
 export function OperationalProvider({ children }: { children: ReactNode }) {
@@ -116,21 +123,64 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
       setFuncoes(next);
       writeStore('cd_funcoes', next);
     },
-    generateEscalaHoraria() {
+    generateEscalaHoraria(options) {
+      const inicioNoturno = options?.inicioNoturno ?? '23:00';
       const elegiveis = funcoes.filter((funcao) => funcao.entra_escala_horaria && allowsEscalaHoraria(funcao.graduacao));
-      const next = elegiveis.map((funcao, index) => {
-        const startHour = 8 + index * 2;
+      const quantidadeMilitares = Math.max(1, Math.min(options?.quantidadeMilitares ?? elegiveis.length, elegiveis.length));
+      const militaresDaNoite = elegiveis.slice(0, quantidadeMilitares);
+      const telegrafista = funcoes.find((funcao) => funcao.funcao.toLowerCase().includes('telegraf')) ?? {
+        militar_nome: escala.telegrafista,
+        graduacao: '',
+        funcao: 'Telegrafista'
+      };
+      const inicioMinutos = inicioNoturno === '22:00' ? 22 * 60 : 23 * 60;
+      const fimMinutos = 24 * 60 + 6 * 60;
+      const duracaoBase = Math.floor((fimMinutos - inicioMinutos) / quantidadeMilitares);
+      const sobra = (fimMinutos - inicioMinutos) % quantidadeMilitares;
+      const linhasFixas: EscalaHoraria[] = inicioNoturno === '23:00'
+        ? [{
+            id: uid('horaria'),
+            escala_id: escala.id,
+            horario_inicio: '22:00',
+            horario_fim: '23:00',
+            militar_nome: telegrafista.militar_nome,
+            graduacao: telegrafista.graduacao,
+            funcao: 'Telegrafista',
+            observacao: 'Fixo'
+          }]
+        : [];
+
+      const linhasMilitares = militaresDaNoite.map((funcao, index) => {
+        const minutosAnteriores = index * duracaoBase + Math.min(index, sobra);
+        const duracao = duracaoBase + (index < sobra ? 1 : 0);
+        const inicio = inicioMinutos + minutosAnteriores;
+        const fim = inicio + duracao;
         return {
           id: uid('horaria'),
           escala_id: escala.id,
-          horario_inicio: `${String(startHour).padStart(2, '0')}:00`,
-          horario_fim: `${String(startHour + 2).padStart(2, '0')}:00`,
+          horario_inicio: formatTime(inicio),
+          horario_fim: formatTime(fim),
           militar_nome: funcao.militar_nome,
           graduacao: funcao.graduacao,
           funcao: funcao.funcao,
-          observacao: 'Escala horária automática para Sd/Cb'
+          observacao: 'Rotativo'
         };
       });
+
+      const next: EscalaHoraria[] = [
+        ...linhasFixas,
+        ...linhasMilitares,
+        {
+          id: uid('horaria'),
+          escala_id: escala.id,
+          horario_inicio: '06:00',
+          horario_fim: '07:00',
+          militar_nome: telegrafista.militar_nome,
+          graduacao: telegrafista.graduacao,
+          funcao: 'Telegrafista',
+          observacao: 'Fixo'
+        }
+      ];
       setEscalaHoraria(next);
       writeStore('cd_escala_horaria', next);
     },

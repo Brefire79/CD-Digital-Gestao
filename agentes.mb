@@ -54,6 +54,9 @@ Observacao: se `npm` global estiver quebrado nesta maquina, pode ser necessario 
 - Prontidoes: Amarela, Azul e Verde.
 - Plantao: 24 horas.
 - Escala horaria: apenas Sd e Cb entram automaticamente.
+- Escala horaria noturna: Cabo de Dia escolhe inicio as 22h00 ou 23h00.
+- Se iniciar as 23h00, 22h00 as 23h00 fica com Telegrafista como posto fixo.
+- O horario fixo de 06h00 as 07h00 e sempre do Telegrafista.
 - Passagem de Servico: checklist por setor do quartel.
 - Checklist com "Com alteracao": cria pendencia.
 - Livro dos Motoristas com "Com novidades": cria pendencia.
@@ -73,3 +76,6 @@ Ao concluir alteracoes, informe:
 - Validacao realizada.
 - Qualquer bloqueio de ambiente, especialmente instalacao de dependencias ou build.
 
+## PRD
+
+O arquivo `PRD.md` e a referencia versionada das regras do produto. Atualize-o quando novas decisoes operacionais forem confirmadas pelo usuario.

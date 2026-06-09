@@ -57,8 +57,15 @@ O SQL inclui tabelas, seeds de prontidões e setores, RLS, bucket privado para a
 - Relato sem novidade preserva relato anterior como referência.
 - Escala horária automática permite apenas `Sd` e `Cb`.
 - `Sgt` e Oficiais ficam fora da escala horária automática.
+- Escala horária noturna permite início às `22h00` ou `23h00`, definido pelo Cabo de Dia.
+- Se iniciar às `23h00`, o trecho `22h00 às 23h00` fica como posto fixo do Telegrafista.
+- O último horário fixo `06h00 às 07h00` é sempre do Telegrafista.
 - Cada plantão é vinculado a uma prontidão.
 - Registros no banco mantêm data e hora.
+
+## PRD
+
+O PRD versionado do projeto está em `PRD.md`.
 
 ## Futuro
 
