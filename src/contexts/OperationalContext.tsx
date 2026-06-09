@@ -17,6 +17,7 @@ interface OperationalContextValue {
   saveSetor: (setor: Omit<SetorQuartel, 'id'> & { id?: string }) => void;
   saveEscala: (escala: Escala) => void;
   saveFuncao: (funcao: Omit<EscalaFuncao, 'id' | 'escala_id'>) => void;
+  deleteFuncao: (id: string) => void;
   generateEscalaHoraria: (options?: { inicioNoturno?: '22:00' | '23:00'; quantidadeMilitares?: number }) => void;
   updateChecklist: (item: ChecklistItem) => void;
   updateRelato: (relato: RelatoViatura) => void;
@@ -62,6 +63,14 @@ function normalizeViatura(viatura: Viatura): Viatura {
   };
 }
 
+function normalizeEscala(escala: Escala): Escala {
+  return {
+    ...escala,
+    oficial_area: escala.oficial_area ?? '',
+    adjunto_dia: escala.adjunto_dia ?? ''
+  };
+}
+
 function formatTime(totalMinutes: number) {
   const normalized = ((totalMinutes % 1440) + 1440) % 1440;
   const hours = Math.floor(normalized / 60);
@@ -72,7 +81,7 @@ function formatTime(totalMinutes: number) {
 export function OperationalProvider({ children }: { children: ReactNode }) {
   const [viaturas, setViaturas] = useState(() => readStore('cd_viaturas', viaturasSeed).map(normalizeViatura));
   const [setores, setSetores] = useState(() => readStore('cd_setores', setoresSeed));
-  const [escala, setEscala] = useState(() => readStore('cd_escala', escalaSeed));
+  const [escala, setEscala] = useState(() => normalizeEscala(readStore('cd_escala', escalaSeed)));
   const [funcoes, setFuncoes] = useState(() => readStore('cd_funcoes', escalaFuncoesSeed));
   const [escalaHoraria, setEscalaHoraria] = useState(() => readStore<EscalaHoraria[]>('cd_escala_horaria', []));
   const [checklist, setChecklist] = useState(() => readStore('cd_checklist', initialChecklist()));
@@ -109,8 +118,9 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
       writeStore('cd_setores', next);
     },
     saveEscala(nextEscala) {
-      setEscala(nextEscala);
-      writeStore('cd_escala', nextEscala);
+      const normalized = normalizeEscala(nextEscala);
+      setEscala(normalized);
+      writeStore('cd_escala', normalized);
     },
     saveFuncao(funcao) {
       const nextFuncao: EscalaFuncao = {
@@ -120,6 +130,11 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
         entra_escala_horaria: allowsEscalaHoraria(funcao.graduacao)
       };
       const next = [nextFuncao, ...funcoes];
+      setFuncoes(next);
+      writeStore('cd_funcoes', next);
+    },
+    deleteFuncao(id) {
+      const next = funcoes.filter((funcao) => funcao.id !== id);
       setFuncoes(next);
       writeStore('cd_funcoes', next);
     },

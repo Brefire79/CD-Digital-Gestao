@@ -119,6 +119,8 @@ Excecao:
   - AUX.
   - Estagiario.
 - O app deve permitir colunas dinamicas de viaturas conforme o plantao.
+- A tela Escala do Dia deve ser o ponto principal para o Cabo de Dia montar as guarnicoes por viatura.
+- Cada militar lancado deve poder ser vinculado a uma viatura ativa ou a uma funcao de cabecalho do plantao.
 - A escala horaria automatica considera apenas integrantes elegiveis das viaturas UR, ABS/AB e Canil.
 - Demais viaturas do documento podem aparecer na distribuicao do plantao, mas nao entram nos criterios da escala horaria.
 - A montagem da distribuicao das viaturas deve ser definida pelo Cabo de Dia; o sistema nao deve preencher nomes aleatorios nessa tabela.

@@ -99,8 +99,8 @@ export function EscalaHoraria() {
   const previewNightRows = buildPreviewNightRows(inicioNoturno);
   const documentoRows = [...dayRows, ...previewNightRows];
   const comandante = escala.comandante || 'Cmt da Prontidão';
-  const oficialArea = 'Definir Tenente';
-  const adjuntoDia = funcoes.find((item) => item.funcao.toLowerCase().includes('adjunto'));
+  const oficialArea = escala.oficial_area || 'Definir Tenente';
+  const adjuntoDia = escala.adjunto_dia || funcoes.find((item) => item.funcao.toLowerCase().includes('adjunto'))?.militar_nome;
   const sargentosRonda = funcoes.filter((item) => isSargento(item.graduacao));
   const primeiroRondante = sargentosRonda[0] ? formatMilitar(sargentosRonda[0]) : 'Definir Sgt rondante';
   const segundoRondante = sargentosRonda[1] ? formatMilitar(sargentosRonda[1]) : primeiroRondante;
@@ -213,7 +213,7 @@ export function EscalaHoraria() {
                   </tr>
                   <tr>
                     <td className="border border-slate-500 font-bold">Adjunto de Dia</td>
-                    <td className="border border-slate-500">{adjuntoDia ? formatMilitar(adjuntoDia) : 'Definir pelo Cabo de Dia'}</td>
+                    <td className="border border-slate-500">{adjuntoDia || 'Definir pelo Cabo de Dia'}</td>
                     <td className="border border-slate-500 font-bold">Ch. dos Motoristas</td>
                     <td className="border border-slate-500">{escala.chefe_motoristas}</td>
                   </tr>

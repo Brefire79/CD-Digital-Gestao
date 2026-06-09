@@ -42,7 +42,9 @@ export interface Escala {
   data_servico_inicio: string;
   data_servico_fim: string;
   prontidao_id: string;
+  oficial_area: string;
   comandante: string;
+  adjunto_dia: string;
   cabo_dia: string;
   telegrafista: string;
   chefe_motoristas: string;
