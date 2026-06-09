@@ -174,7 +174,7 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
           id: uid('horaria'),
           escala_id: escala.id,
           horario_inicio: '06:00',
-          horario_fim: '07:00',
+          horario_fim: '07:30',
           militar_nome: telegrafista.militar_nome,
           graduacao: telegrafista.graduacao,
           funcao: 'Telegrafista',

@@ -15,7 +15,7 @@ export function EscalaHoraria() {
   const quantidadeValida = Math.max(1, Math.min(quantidadeMilitares, Math.max(1, elegiveis.length)));
   const resumo = useMemo(() => {
     const inicio = inicioNoturno === '22:00' ? '22h00' : '23h00';
-    return `${quantidadeValida} militares dividindo o período de ${inicio} às 06h00. Telegrafista permanece fixo no último horário das 06h00 às 07h00.`;
+    return `${quantidadeValida} militares dividindo o período de ${inicio} às 06h00. Telegrafista permanece fixo no último horário das 06h00 às 07h30.`;
   }, [inicioNoturno, quantidadeValida]);
 
   return (

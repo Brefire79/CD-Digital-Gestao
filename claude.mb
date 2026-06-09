@@ -50,8 +50,13 @@ Termos corretos:
 - Sgt e Oficiais podem aparecer apenas em ronda, se houver suporte futuro.
 - A escala horaria noturna pode iniciar as 22h00 ou 23h00, conforme decisao do Cabo de Dia.
 - Se iniciar as 23h00, o horario de 22h00 as 23h00 fica com o Telegrafista como posto fixo.
-- O ultimo horario fixo, de 06h00 as 07h00, e sempre do militar na funcao de Telegrafista.
-- O miolo da noite deve ser dividido automaticamente e de forma equilibrada entre Sd/Cb selecionados.
+- O ultimo horario fixo, de 06h00 as 07h30, e sempre do militar na funcao de Telegrafista.
+- O miolo da noite deve ser dividido automaticamente e de forma equilibrada entre Sd/Cb selecionados das viaturas UR, ABS/AB e Canil.
+- A sequencia noturna prioriza Motorista UR, Motorista AB e Motorista Canil; se o motorista do Canil for Sgt ou superior, a escala cai nos demais integrantes elegiveis da guarnicao do Canil.
+- A escala completa tambem deve cobrir a faixa diurna de 07h30 as 22h00, com sugestoes para auxiliares do Auto Bomba e Canil.
+- Rondantes sao gerados com Comandante da Prontidao e Adjunto de Dia; se forem a mesma pessoa, ela cobre o periodo todo.
+- O PDF futuro deve ser A4 vertical em uma pagina, com assinatura desenhada na tela e layout proximo ao documento fisico.
+- Modelos devem ser salvos por prontidao e futuramente em Google Drive/Google Sheets.
 - Checklist com status "Com alteracao" deve gerar pendencia.
 - Relato de viatura com "Com novidades" deve gerar pendencia vinculada a viatura.
 - Relato de viatura "Sem novidades" deve manter o relato anterior apenas como referencia historica.
