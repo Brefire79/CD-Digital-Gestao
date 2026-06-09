@@ -10,16 +10,32 @@ import { buildMonthlyScale, getCurrentProntidaoName, prontidaoColors } from '../
 export function Dashboard() {
   const { escala, pendencias, prontidoes, escalaHoraria, relatos } = useOperational();
   const [showCalendar, setShowCalendar] = useState(() => window.localStorage.getItem('cd_show_monthly_scale') === 'true');
-  const currentDate = new Date();
+  const [currentDate, setCurrentDate] = useState(() => new Date());
   const prontidao = getCurrentProntidaoName();
   const prontidaoDb = prontidoes.find((item) => item.nome === prontidao) ?? prontidoes.find((item) => item.id === escala.prontidao_id);
   const monthCells = buildMonthlyScale(currentDate.getFullYear(), currentDate.getMonth());
   const color = prontidaoColors[prontidao];
   const abertas = pendencias.filter((item) => item.status === 'Aberta').length;
+  const dataPlantao = currentDate.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  });
+  const horaPlantao = currentDate.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
 
   useEffect(() => {
     window.localStorage.setItem('cd_show_monthly_scale', String(showCalendar));
   }, [showCalendar]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentDate(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const modules = [
     { to: '/passagem-servico', label: 'Passagem de Serviço', detail: 'Checklist e assinatura do Cabo de Dia', icon: ClipboardCheck },
@@ -34,7 +50,7 @@ export function Dashboard() {
   return (
     <div className="grid gap-4">
       <Card className="bg-gradient-to-br from-operacional-panel to-slate-950">
-        <div className="flex items-start justify-between gap-3">
+        <div className="grid gap-4 lg:grid-cols-[1fr_1.35fr_auto] lg:items-center">
           <div>
             <p className="text-sm text-slate-300">Prontidão atual</p>
             <div className="mt-1 flex items-center gap-3">
@@ -42,6 +58,11 @@ export function Dashboard() {
               <span className={`h-9 w-9 rounded-lg border-2 ${color.bg} ${color.border}`} aria-label={`Cor da prontidão ${prontidao}`} />
             </div>
             <p className="mt-2 text-sm text-slate-400">Regime 24x48 em rotação contínua. Referência operacional: {prontidaoDb?.nome ?? prontidao}.</p>
+          </div>
+          <div className="rounded-xl border border-operacional-accent/40 bg-slate-950/80 p-4 text-center shadow-soft">
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-operacional-accent">Data e hora do plantão</p>
+            <h1 className="mt-2 text-5xl font-black leading-none text-white sm:text-6xl lg:text-7xl">{horaPlantao}</h1>
+            <p className="mt-3 text-lg font-black capitalize text-slate-100 sm:text-2xl">{dataPlantao}</p>
           </div>
           <div className="flex flex-col items-end gap-3">
             <StatusBadge status={abertas > 0 ? 'Aberta' : 'OK'} />
