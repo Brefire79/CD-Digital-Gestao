@@ -1,13 +1,24 @@
 create extension if not exists "pgcrypto";
 create schema if not exists private;
 
-create type public.user_role as enum ('admin', 'cabo_dia', 'motorista', 'militar');
-create type public.prontidao_nome as enum ('Amarela', 'Azul', 'Verde');
-create type public.checklist_status as enum ('OK', 'Com alteração');
-create type public.pendencia_status as enum ('Aberta', 'Em andamento', 'Resolvida', 'Arquivada');
-create type public.pendencia_origem as enum ('passagem_servico', 'livro_motoristas');
+do $$ begin
+  create type public.user_role as enum ('admin', 'cabo_dia', 'sgt', 'motorista', 'militar');
+exception when duplicate_object then null; end $$;
+alter type public.user_role add value if not exists 'sgt';
+do $$ begin
+  create type public.prontidao_nome as enum ('Amarela', 'Azul', 'Verde');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type public.checklist_status as enum ('OK', 'Com alteração');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type public.pendencia_status as enum ('Aberta', 'Em andamento', 'Resolvida', 'Arquivada');
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create type public.pendencia_origem as enum ('passagem_servico', 'livro_motoristas');
+exception when duplicate_object then null; end $$;
 
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,
   nome text not null,
@@ -17,13 +28,13 @@ create table public.profiles (
   created_at timestamptz not null default now()
 );
 
-create table public.prontidoes (
+create table if not exists public.prontidoes (
   id uuid primary key default gen_random_uuid(),
   nome public.prontidao_nome not null unique,
   created_at timestamptz not null default now()
 );
 
-create table public.viaturas (
+create table if not exists public.viaturas (
   id uuid primary key default gen_random_uuid(),
   prefixo text not null unique,
   tipo text not null,
@@ -37,7 +48,7 @@ create table public.viaturas (
   constraint viatura_status_operacional check (status_operacional in ('Rodando', 'Reserva', 'Manutenção', 'Transferida', 'Histórico'))
 );
 
-create table public.setores_quartel (
+create table if not exists public.setores_quartel (
   id uuid primary key default gen_random_uuid(),
   nome text not null unique,
   ordem integer not null,
@@ -45,7 +56,7 @@ create table public.setores_quartel (
   created_at timestamptz not null default now()
 );
 
-create table public.escalas (
+create table if not exists public.escalas (
   id uuid primary key default gen_random_uuid(),
   data_servico_inicio timestamptz not null,
   data_servico_fim timestamptz not null,
@@ -62,7 +73,7 @@ create table public.escalas (
   constraint plantao_24h check (data_servico_fim > data_servico_inicio)
 );
 
-create table public.escala_funcoes (
+create table if not exists public.escala_funcoes (
   id uuid primary key default gen_random_uuid(),
   escala_id uuid not null references public.escalas(id) on delete cascade,
   militar_nome text not null,
@@ -76,7 +87,7 @@ create table public.escala_funcoes (
   )
 );
 
-create table public.escala_horaria (
+create table if not exists public.escala_horaria (
   id uuid primary key default gen_random_uuid(),
   escala_id uuid not null references public.escalas(id) on delete cascade,
   horario_inicio time not null,
@@ -85,11 +96,14 @@ create table public.escala_horaria (
   graduacao text not null,
   funcao text not null,
   observacao text,
-  created_at timestamptz not null default now(),
-  constraint escala_horaria_sd_cb check (lower(graduacao) in ('sd', 'soldado', 'cb', 'cabo'))
+  created_at timestamptz not null default now()
 );
 
-create table public.passagens_servico (
+-- A restricao vale para inclusao automatica em escala_funcoes. A escala final
+-- tambem possui Telegrafista fixo, linhas em aberto e inclusoes manuais do Cabo de Dia.
+alter table public.escala_horaria drop constraint if exists escala_horaria_sd_cb;
+
+create table if not exists public.passagens_servico (
   id uuid primary key default gen_random_uuid(),
   escala_id uuid not null references public.escalas(id) on delete cascade,
   prontidao_id uuid not null references public.prontidoes(id),
@@ -101,7 +115,7 @@ create table public.passagens_servico (
   created_at timestamptz not null default now()
 );
 
-create table public.checklist_passagem (
+create table if not exists public.checklist_passagem (
   id uuid primary key default gen_random_uuid(),
   passagem_id uuid not null references public.passagens_servico(id) on delete cascade,
   setor_id uuid not null references public.setores_quartel(id),
@@ -111,7 +125,7 @@ create table public.checklist_passagem (
   created_at timestamptz not null default now()
 );
 
-create table public.livro_motoristas (
+create table if not exists public.livro_motoristas (
   id uuid primary key default gen_random_uuid(),
   escala_id uuid not null references public.escalas(id) on delete cascade,
   prontidao_id uuid not null references public.prontidoes(id),
@@ -123,7 +137,7 @@ create table public.livro_motoristas (
   created_at timestamptz not null default now()
 );
 
-create table public.relatos_viaturas (
+create table if not exists public.relatos_viaturas (
   id uuid primary key default gen_random_uuid(),
   livro_motoristas_id uuid not null references public.livro_motoristas(id) on delete cascade,
   viatura_id uuid not null references public.viaturas(id),
@@ -135,7 +149,7 @@ create table public.relatos_viaturas (
   constraint relato_obrigatorio_quando_novidade check (tem_novidade is false or nullif(trim(relato), '') is not null)
 );
 
-create table public.pendencias (
+create table if not exists public.pendencias (
   id uuid primary key default gen_random_uuid(),
   origem public.pendencia_origem not null,
   origem_id uuid not null,
@@ -151,7 +165,7 @@ create table public.pendencias (
   updated_at timestamptz not null default now()
 );
 
-create table public.historico_pendencias (
+create table if not exists public.historico_pendencias (
   id uuid primary key default gen_random_uuid(),
   pendencia_id uuid not null references public.pendencias(id) on delete cascade,
   descricao text not null,
@@ -161,10 +175,10 @@ create table public.historico_pendencias (
   created_at timestamptz not null default now()
 );
 
-create index on public.pendencias(status);
-create index on public.pendencias(origem, origem_id);
-create unique index pendencias_origem_unica on public.pendencias(origem, origem_id);
-create index on public.escala_horaria(escala_id, horario_inicio);
+create index if not exists pendencias_status_idx on public.pendencias(status);
+create index if not exists pendencias_origem_idx on public.pendencias(origem, origem_id);
+create unique index if not exists pendencias_origem_unica on public.pendencias(origem, origem_id);
+create index if not exists escala_horaria_escala_inicio_idx on public.escala_horaria(escala_id, horario_inicio);
 
 create or replace function private.is_admin()
 returns boolean
@@ -199,6 +213,7 @@ begin
 end;
 $$;
 
+drop trigger if exists pendencias_touch_updated_at on public.pendencias;
 create trigger pendencias_touch_updated_at
 before update on public.pendencias
 for each row execute function public.touch_updated_at();
@@ -238,6 +253,7 @@ begin
 end;
 $$;
 
+drop trigger if exists checklist_cria_pendencia on public.checklist_passagem;
 create trigger checklist_cria_pendencia
 after insert or update of status, observacao, foto_url on public.checklist_passagem
 for each row execute function private.criar_pendencia_checklist();
@@ -276,6 +292,7 @@ begin
 end;
 $$;
 
+drop trigger if exists relato_viatura_cria_pendencia on public.relatos_viaturas;
 create trigger relato_viatura_cria_pendencia
 after insert or update of tem_novidade, relato on public.relatos_viaturas
 for each row execute function private.criar_pendencia_viatura();
@@ -299,6 +316,7 @@ begin
 end;
 $$;
 
+drop trigger if exists pendencias_historico on public.pendencias;
 create trigger pendencias_historico
 after insert or update of status on public.pendencias
 for each row execute function private.registrar_historico_pendencia();
@@ -323,6 +341,34 @@ alter table public.relatos_viaturas enable row level security;
 alter table public.pendencias enable row level security;
 alter table public.historico_pendencias enable row level security;
 
+do $$
+declare
+  policy_row record;
+begin
+  for policy_row in
+    select schemaname, tablename, policyname
+    from pg_policies
+    where schemaname = 'public'
+      and policyname = any (array[
+        'usuarios autenticados consultam perfis', 'admin gerencia perfis',
+        'usuarios autenticados consultam base operacional', 'admin gerencia prontidoes',
+        'usuarios autenticados consultam viaturas', 'admin gerencia viaturas',
+        'usuarios autenticados consultam setores', 'admin gerencia setores',
+        'usuarios autenticados consultam escalas', 'admin e cabo criam escalas', 'admin e cabo atualizam escalas',
+        'usuarios autenticados consultam funcoes', 'admin e cabo gerenciam funcoes',
+        'usuarios autenticados consultam escala horaria', 'admin e cabo gerenciam escala horaria',
+        'usuarios autenticados consultam passagens', 'admin e cabo gerenciam passagens',
+        'usuarios autenticados consultam checklist', 'admin e cabo gerenciam checklist',
+        'usuarios autenticados consultam livro', 'admin motorista e cabo gerenciam livro',
+        'usuarios autenticados consultam relatos', 'admin motorista e cabo gerenciam relatos',
+        'usuarios autenticados consultam pendencias', 'admin e cabo gerenciam pendencias',
+        'usuarios autenticados consultam historico', 'admin e cabo registram historico'
+      ])
+  loop
+    execute format('drop policy if exists %I on %I.%I', policy_row.policyname, policy_row.schemaname, policy_row.tablename);
+  end loop;
+end $$;
+
 create policy "usuarios autenticados consultam perfis" on public.profiles for select to authenticated using (true);
 create policy "admin gerencia perfis" on public.profiles for all to authenticated using (private.is_admin()) with check (private.is_admin());
 
@@ -346,10 +392,10 @@ create policy "usuarios autenticados consultam escala horaria" on public.escala_
 create policy "admin e cabo gerenciam escala horaria" on public.escala_horaria for all to authenticated using (private.current_role() in ('admin', 'cabo_dia')) with check (private.current_role() in ('admin', 'cabo_dia'));
 
 create policy "usuarios autenticados consultam passagens" on public.passagens_servico for select to authenticated using (true);
-create policy "admin e cabo gerenciam passagens" on public.passagens_servico for all to authenticated using (private.current_role() in ('admin', 'cabo_dia')) with check (private.current_role() in ('admin', 'cabo_dia'));
+create policy "admin e cabo gerenciam passagens" on public.passagens_servico for all to authenticated using (private.current_role() in ('admin', 'cabo_dia', 'sgt')) with check (private.current_role() in ('admin', 'cabo_dia', 'sgt'));
 
 create policy "usuarios autenticados consultam checklist" on public.checklist_passagem for select to authenticated using (true);
-create policy "admin e cabo gerenciam checklist" on public.checklist_passagem for all to authenticated using (private.current_role() in ('admin', 'cabo_dia')) with check (private.current_role() in ('admin', 'cabo_dia'));
+create policy "admin e cabo gerenciam checklist" on public.checklist_passagem for all to authenticated using (private.current_role() in ('admin', 'cabo_dia', 'sgt')) with check (private.current_role() in ('admin', 'cabo_dia', 'sgt'));
 
 create policy "usuarios autenticados consultam livro" on public.livro_motoristas for select to authenticated using (true);
 create policy "admin motorista e cabo gerenciam livro" on public.livro_motoristas for all to authenticated using (private.current_role() in ('admin', 'cabo_dia', 'motorista')) with check (private.current_role() in ('admin', 'cabo_dia', 'motorista'));
@@ -383,10 +429,12 @@ insert into storage.buckets (id, name, public)
 values ('cd-digital-anexos', 'cd-digital-anexos', false)
 on conflict (id) do nothing;
 
+drop policy if exists "usuarios autenticados enviam anexos" on storage.objects;
 create policy "usuarios autenticados enviam anexos"
 on storage.objects for insert to authenticated
 with check (bucket_id = 'cd-digital-anexos');
 
+drop policy if exists "usuarios autenticados leem anexos" on storage.objects;
 create policy "usuarios autenticados leem anexos"
 on storage.objects for select to authenticated
 using (bucket_id = 'cd-digital-anexos');

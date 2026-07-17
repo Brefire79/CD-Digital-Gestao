@@ -40,6 +40,10 @@ CD Digital - Gestao de Prontidao Operacional, um PWA mobile first para uso duran
 - Distribuicao de viaturas no documento deve ser definida pelo Cabo de Dia, sem nomes aleatorios.
 - Checklist com `Com alteracao` cria pendencia.
 - Livro dos Motoristas com `Com novidades` cria pendencia.
+- Livro dos Motoristas replica as VTRs do plantao, aceita VTRs adicionais e permanece editavel ate o encerramento.
+- O Chefe dos Motoristas revisa e assina; C/N sem relato impede o fechamento.
+- O encerramento somente ocorre apos backup PDF confirmado em `Prontidao correspondente/Livro dos Motoristas/Ano` no Google Drive.
+- Cabecalho do Livro: Policia Militar do Estado de Sao Paulo, Corpo de Bombeiros, Estacao de Bombeiros Ipiranga e `Prontidao - data por extenso`.
 - Pendencias devem manter historico.
 
 ## Validacao

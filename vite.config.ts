@@ -3,6 +3,19 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('react') || id.includes('scheduler')) return 'react-vendor';
+          if (id.includes('@supabase')) return 'supabase-vendor';
+          if (id.includes('lucide-react')) return 'icons-vendor';
+          return undefined;
+        }
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({
@@ -11,8 +24,8 @@ export default defineConfig({
         name: 'CD Digital - Gestao de Prontidao Operacional',
         short_name: 'CD Digital',
         description: 'PWA para passagem de servico, escalas, viaturas e pendencias.',
-        theme_color: '#0b1120',
-        background_color: '#0b1120',
+        theme_color: '#16181C',
+        background_color: '#16181C',
         display: 'standalone',
         start_url: '/',
         icons: [

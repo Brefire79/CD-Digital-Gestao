@@ -1,5 +1,14 @@
 # Claude - CD Digital
 
+## Estado validado do MVP operacional
+
+- Escala do Dia sincroniza dados com a Passagem 360 ao salvar.
+- Escala Horaria e rondantes sao persistidos e editaveis.
+- Relatorios geram PDFs reais e permitem arquivar o plantao no historico local.
+- O schema aceita o perfil Sgt na Passagem/Checklist e preserva linhas fixas ou manuais da escala.
+- Livro dos Motoristas sincroniza as VTRs do plantao, aceita VTRs adicionais e exige relato para C/N.
+- Fechamento pelo Chefe dos Motoristas gera PDF e so conclui apos backup confirmado no Google Drive.
+
 ## Projeto
 
 CD Digital - Gestao de Prontidao Operacional e um PWA para uso em quartel do Corpo de Bombeiros, focado em plantao de 24 horas, passagem de servico, escalas, livro dos motoristas, pendencias e relatorios.
@@ -53,12 +62,15 @@ Termos corretos:
 - O miolo da noite deve ser dividido automaticamente e de forma equilibrada entre Sd/Cb selecionados das viaturas UR, ABS/AB e Canil.
 - A sequencia noturna prioriza Motorista UR, Motorista AB e Motorista Canil; se o motorista do Canil for Sgt ou superior, a escala cai nos demais integrantes elegiveis da guarnicao do Canil.
 - A escala completa tambem deve cobrir a faixa diurna de 07h30 as 22h00, com sugestoes para auxiliares do Auto Bomba e Canil.
-- Rondantes devem considerar somente Sgt automaticamente; Oficiais, Sd e Cb nao devem ser usados automaticamente como rondantes.
+- Rondantes devem considerar somente Sgt automaticamente, entre 00h00 e 06h00; Oficiais, Sd, Cb e Sgt vinculado a OD nao participam automaticamente.
 - Oficial de Area, Comandante da Prontidao e Adjunto de Dia sao campos independentes e devem ser preenchidos ou conferidos pelo Cabo de Dia.
-- O PDF futuro deve ser A4 vertical em uma pagina, com assinatura desenhada na tela e layout proximo ao documento fisico.
-- Modelos devem ser salvos por prontidao e futuramente em Google Drive/Google Sheets.
+- Os PDFs operacionais devem manter layout proximo ao documento fisico; assinatura desenhada continua como evolucao futura.
+- O PDF do Livro ja possui backup por prontidao no Google Drive; demais documentos e Google Sheets continuam como evolucao.
 - Checklist com status "Com alteracao" deve gerar pendencia.
 - Relato de viatura com "Com novidades" deve gerar pendencia vinculada a viatura.
+- O Livro dos Motoristas replica as VTRs do plantao, aceita VTRs adicionais e mantem S/N, C/N e relatos editaveis ate o termino do plantao.
+- O Livro so encerra depois da revisao e assinatura do Chefe dos Motoristas e da confirmacao do PDF no Google Drive em `Prontidao correspondente/Livro dos Motoristas/Ano`.
+- O cabecalho do Livro usa Estacao de Bombeiros Ipiranga, prontidao correspondente e data por extenso.
 - Relato de viatura "Sem novidades" deve manter o relato anterior apenas como referencia historica.
 - Toda pendencia precisa manter historico de atualizacoes.
 - Todo registro deve manter data e hora.
@@ -68,13 +80,17 @@ Termos corretos:
 - Dashboard mobile first com card de prontidao atual, cor operacional, status, botao para abrir/ocultar calendario 24x48 e relogio/data do plantao em fonte grande.
 - Calendario 24x48 fica fechado por padrao e pode permanecer oculto via `localStorage`.
 - Escala do Dia e o ponto principal para montar o cabecalho do servico e as guarnicoes por viatura.
-- Escala do Dia permite lancar militar por VTR ativa nas funcoes CMT, MOT, AUX, AUX e Estagiario.
+- Escala do Dia permite lancar militar por VTR ativa nas funcoes CMT, MOT, AUX e Estagiario.
+- A Passagem 360 usa o menu Viaturas, Ronda Quartel, Escala de Hora, Livro dos Motoristas e Relatorios.
+- O cadastro de VTR da Passagem 360 reune prefixo, CMT, MOT, AUX e Estagiario, inclusive para Canil e OD; OD e apenas informativa.
+- A aba Viaturas permite cadastrar o Telegrafista para os horarios fixos e para o documento; Sgt e Cb de Dia podem revisar os postos.
 - Escala do Dia permite funcoes rapidas de cabecalho: Cabo de Dia, Telegrafia, Chefe dos Motoristas e Adjunto de Dia.
 - Militares lancados podem ser removidos para corrigir escala durante montagem.
 - Escala Horaria possui previa visual do documento A4 completo, com faixa diurna, faixa noturna, rondantes, distribuicao de viaturas, alteracoes e assinaturas.
 - Previa do documento nao deve preencher nomes aleatorios na distribuicao de viaturas; quando faltar dado, usar "Definir pelo Cabo de Dia".
 - Geracao da escala horaria considera apenas funcoes elegiveis associadas a UR, ABS/AB e Canil; se ainda nao houver guarnicao vinculada, usa placeholders "Definir Motorista UR/AB/Canil".
-- Viaturas possuem cadastro com editar, excluir e manter historico/transferencia.
+- Viaturas possuem cadastro com editar e manter historico/transferencia; a interface nao exclui registros operacionais.
+- O Cabo de Dia seleciona e ordena ate quatro viaturas para as colunas do documento, com persistencia local da escolha.
 - PRD, schema Supabase e arquivos de orientacao devem ser mantidos sincronizados quando regra operacional mudar.
 
 ## Modulos do MVP
@@ -116,6 +132,9 @@ Nunca exponha service role key no frontend. Use somente variaveis publicas Vite:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_GOOGLE_CLIENT_ID`
+
+`VITE_GOOGLE_CLIENT_ID` exige Google Drive API e cliente OAuth Web com as origens autorizadas. Nunca usar Google client secret no frontend.
 
 ## IA
 

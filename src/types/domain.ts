@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'cabo_dia' | 'motorista' | 'militar';
+export type Role = 'admin' | 'cabo_dia' | 'sgt' | 'motorista' | 'militar';
 export type ProntidaoNome = 'Amarela' | 'Azul' | 'Verde';
 export type StatusChecklist = 'OK' | 'Com alteração';
 export type StatusPendencia = 'Aberta' | 'Em andamento' | 'Resolvida' | 'Arquivada';
@@ -71,6 +71,13 @@ export interface EscalaHoraria {
   observacao: string;
 }
 
+export interface Rondante {
+  id: string;
+  horario_inicio: string;
+  horario_fim: string;
+  militar_nome: string;
+}
+
 export interface ChecklistItem {
   id: string;
   setor_id: string;
@@ -106,4 +113,15 @@ export interface Pendencia {
   created_at: string;
   updated_at: string;
   historico: string[];
+}
+
+export interface HistoricoPlantao {
+  id: string;
+  encerrado_em: string;
+  escala: Escala;
+  funcoes: EscalaFuncao[];
+  escala_horaria: EscalaHoraria[];
+  rondantes: Rondante[];
+  relatos: RelatoViatura[];
+  pendencias: Pendencia[];
 }

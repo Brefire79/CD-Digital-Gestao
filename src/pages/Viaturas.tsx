@@ -9,7 +9,7 @@ import { useOperational } from '../contexts/OperationalContext';
 import type { Viatura } from '../types/domain';
 
 export function Viaturas() {
-  const { viaturas, saveViatura, archiveViatura, deleteViatura } = useOperational();
+  const { viaturas, saveViatura, archiveViatura } = useOperational();
   const [editingId, setEditingId] = useState<string | undefined>();
   const [prefixo, setPrefixo] = useState('');
   const [tipo, setTipo] = useState('');
@@ -105,10 +105,9 @@ export function Viaturas() {
                 {viatura.observacao_historico}
               </div>
             )}
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2">
               <Button type="button" variant="secondary" onClick={() => handleEdit(viatura)}>Editar</Button>
               <Button type="button" variant="ghost" onClick={() => handleArchive(viatura)}>Histórico</Button>
-              <Button type="button" variant="danger" onClick={() => deleteViatura(viatura.id)}>Excluir</Button>
             </div>
           </Card>
         ))}

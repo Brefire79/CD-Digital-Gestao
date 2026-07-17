@@ -17,5 +17,7 @@ Resumo obrigatorio:
 - Rondantes: somente Sgt automaticamente.
 - Oficial de Area, Comandante da Prontidao e Adjunto de Dia sao campos independentes.
 - Dashboard: data e hora do plantao em fonte grande; calendario 24x48 ocultavel.
-- PDF futuro: A4 vertical em uma pagina, semelhante ao documento fisico.
+- PDFs operacionais: usar dados reais e buscar fidelidade ao documento fisico; assinatura desenhada permanece como evolucao.
+- Livro dos Motoristas: VTRs do plantao mais VTRs adicionais, S/N/C/N, assinatura do Chefe dos Motoristas e fechamento somente apos backup confirmado no Google Drive.
+- Backup do Livro: `Prontidao correspondente/Livro dos Motoristas/Ano`, usando `VITE_GOOGLE_CLIENT_ID` sem client secret.
 - Sempre atualizar `PRD.md`, `README.md`, `ROADMAP.md`, `claude.mb` e `agentes.mb` quando regras operacionais mudarem.

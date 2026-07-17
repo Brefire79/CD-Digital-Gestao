@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,4 +26,262 @@ textarea {
   background:
     radial-gradient(circle at top left, rgba(200, 30, 30, 0.18), transparent 34rem),
     linear-gradient(180deg, #0b1120 0%, #101827 48%, #0b1120 100%);
+}
+
+.font-condensed,
+.passagem-brand-title,
+.passagem-screen-title {
+  font-family: "Barlow Condensed", "Arial Narrow", Inter, sans-serif;
+}
+
+.passagem-stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #e9e9ec;
+}
+
+.passagem-device {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #d9eefa;
+}
+
+.passagem-menu-stage {
+  height: 100dvh;
+  min-height: 0;
+  padding: 17px 17px 12px;
+}
+
+.passagem-menu-device {
+  width: 100%;
+  max-width: 388px;
+  height: 100%;
+  min-height: 0;
+  border-radius: 30px;
+  box-shadow: 0 14px 32px rgba(15, 92, 153, 0.1);
+}
+
+.passagem-menu-header,
+.passagem-screen-header {
+  min-height: 92px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 26px 20px 14px;
+  color: white;
+  background: #b3181f;
+}
+
+.passagem-menu-header {
+  min-height: 83px;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+}
+
+.passagem-brand-title,
+.passagem-screen-title {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.passagem-menu-header .passagem-brand-title {
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+.passagem-menu-header .passagem-icon-button {
+  width: 36px;
+  height: 36px;
+}
+
+.passagem-screen-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.passagem-icon-button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.passagem-prontidao-pill,
+.passagem-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #333;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(15, 92, 153, 0.12);
+}
+
+.passagem-prontidao-pill {
+  min-height: 27px;
+  padding: 5px 14px;
+}
+
+.passagem-header-pill {
+  padding: 6px 10px;
+}
+
+.passagem-menu-prontidao {
+  height: 38px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 11px;
+  flex-shrink: 0;
+}
+
+.passagem-menu-nav {
+  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 11px;
+  padding: 18px 21px 16px;
+}
+
+.passagem-menu-card {
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  border-left: 5px solid #2e9be6;
+  border-radius: 15px;
+  padding: 0 16px;
+  background: #fff;
+  color: #0f5c99;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  box-shadow: 0 4px 14px rgba(15, 92, 153, 0.15);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.passagem-menu-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 92, 153, 0.2);
+}
+
+.passagem-menu-card:focus-visible,
+.passagem-icon-button:focus-visible {
+  outline: 3px solid #f1c24b;
+  outline-offset: 2px;
+}
+
+.passagem-footer {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  background: #b3181f;
+  color: #f1c24b;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.passagem-menu-device .passagem-footer {
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 8px 20px;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+}
+
+.login-brand-panel {
+  position: relative;
+  min-height: 43vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 30px 24px 14px;
+  text-align: center;
+  background: #b3181f;
+}
+
+.login-form-panel {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  margin-top: -1px;
+  border-radius: 28px 28px 0 0;
+  padding: 30px 26px 26px;
+  background: #fff;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.15);
+}
+
+.login-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.login-orb-top {
+  top: -60px;
+  right: -60px;
+  width: 220px;
+  height: 220px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.login-orb-bottom {
+  bottom: -30px;
+  left: -80px;
+  width: 180px;
+  height: 180px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 640px) {
+  .passagem-stage {
+    padding: 20px;
+  }
+
+  .passagem-device {
+    width: min(100%, 430px);
+    height: min(900px, calc(100vh - 40px));
+    min-height: 620px;
+    border-radius: 32px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+  }
+
+
+  .passagem-menu-stage {
+    padding: 17px 17px 12px;
+  }
+
+  .passagem-menu-device {
+    width: 388px;
+    height: min(844px, 100%);
+    min-height: 0;
+    border-radius: 30px;
+  }
 }

@@ -34,7 +34,7 @@ export function Setores() {
         </form>
       </Card>
       <div className="grid gap-3">
-        {setores.sort((a, b) => a.ordem - b.ordem).map((setor) => (
+        {[...setores].sort((a, b) => a.ordem - b.ordem).map((setor) => (
           <Card key={setor.id}>
             <div className="flex items-center justify-between gap-3">
               <div>

@@ -41,6 +41,7 @@ export function LivroMotoristas() {
                 label={relato.tem_novidade ? 'Relato obrigatório' : 'Relato anterior como referência'}
                 value={relato.tem_novidade ? relato.relato : relato.relato_anterior}
                 disabled={!relato.tem_novidade}
+                required={relato.tem_novidade}
                 onChange={(event) => updateRelato({ ...relato, relato: event.target.value })}
               />
             </div>

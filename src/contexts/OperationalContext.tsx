@@ -1,7 +1,8 @@
 import { createContext, ReactNode, useContext, useMemo, useState } from 'react';
 import { escalaFuncoesSeed, escalaSeed, pendenciasSeed, prontidoesSeed, setoresSeed, viaturasSeed } from '../data/seeds';
+import { gerarLinhasEscala, gerarRondantes, type ClasseVtr, type MembroBruto } from '../lib/escalaGenerator';
 import { readStore, uid, writeStore } from '../lib/storage';
-import type { ChecklistItem, Escala, EscalaFuncao, EscalaHoraria, Pendencia, RelatoViatura, SetorQuartel, Viatura } from '../types/domain';
+import type { ChecklistItem, Escala, EscalaFuncao, EscalaHoraria, HistoricoPlantao, OrigemPendencia, Pendencia, RelatoViatura, Rondante, SetorQuartel, Viatura } from '../types/domain';
 
 interface OperationalContextValue {
   prontidoes: typeof prontidoesSeed;
@@ -10,20 +11,27 @@ interface OperationalContextValue {
   escala: Escala;
   funcoes: EscalaFuncao[];
   escalaHoraria: EscalaHoraria[];
+  rondantes: Rondante[];
   checklist: ChecklistItem[];
   relatos: RelatoViatura[];
   pendencias: Pendencia[];
+  historicoPlantoes: HistoricoPlantao[];
   saveViatura: (viatura: Omit<Viatura, 'id'> & { id?: string }) => void;
   saveSetor: (setor: Omit<SetorQuartel, 'id'> & { id?: string }) => void;
   saveEscala: (escala: Escala) => void;
   saveFuncao: (funcao: Omit<EscalaFuncao, 'id' | 'escala_id'>) => void;
   deleteFuncao: (id: string) => void;
   generateEscalaHoraria: (options?: { inicioNoturno?: '22:00' | '23:00'; quantidadeMilitares?: number }) => void;
+  updateEscalaHoraria: (id: string, patch: Partial<EscalaHoraria>) => void;
+  generateRondantes: () => void;
+  updateRondante: (id: string, patch: Partial<Rondante>) => void;
   updateChecklist: (item: ChecklistItem) => void;
   updateRelato: (relato: RelatoViatura) => void;
   updatePendencia: (id: string, status: Pendencia['status'], descricao: string) => void;
+  addPendencias: (entradas: { origem: OrigemPendencia; origem_id: string; tipo: string; alvo: string; descricao: string }[]) => number;
   archiveViatura: (id: string, transferidaPara: string, observacao: string) => void;
   deleteViatura: (id: string) => void;
+  encerrarPlantao: () => HistoricoPlantao;
 }
 
 const OperationalContext = createContext<OperationalContextValue | undefined>(undefined);
@@ -71,11 +79,23 @@ function normalizeEscala(escala: Escala): Escala {
   };
 }
 
-function formatTime(totalMinutes: number) {
-  const normalized = ((totalMinutes % 1440) + 1440) % 1440;
-  const hours = Math.floor(normalized / 60);
-  const minutes = normalized % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+function classeViatura(viatura?: Viatura): ClasseVtr {
+  if (!viatura) return '';
+  const text = `${viatura.prefixo} ${viatura.tipo}`.toLowerCase();
+  if (/\bur\b/.test(text) || text.includes('resgate')) return 'UR';
+  if (/\bab\b/.test(text) || text.includes('abs') || text.includes('bomba')) return 'ABS';
+  if (text.includes('canil') || /\bcn\b/.test(text)) return 'CANIL';
+  return 'OD';
+}
+
+function splitMilitarLabel(label: string) {
+  const text = label.trim();
+  const match = text.match(/^(Sd|Cb|Sgt|Ten|Cap|Maj|Cel|Subten|Asp)\s+(?:PM\s+)?(.+)$/i);
+  if (!match) return { graduacao: '', militar_nome: text || 'Definir pelo Cabo de Dia' };
+  return {
+    graduacao: match[1],
+    militar_nome: match[2]
+  };
 }
 
 export function OperationalProvider({ children }: { children: ReactNode }) {
@@ -84,9 +104,11 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
   const [escala, setEscala] = useState(() => normalizeEscala(readStore('cd_escala', escalaSeed)));
   const [funcoes, setFuncoes] = useState(() => readStore('cd_funcoes', escalaFuncoesSeed));
   const [escalaHoraria, setEscalaHoraria] = useState(() => readStore<EscalaHoraria[]>('cd_escala_horaria', []));
+  const [rondantes, setRondantes] = useState(() => readStore<Rondante[]>('cd_rondantes', []));
   const [checklist, setChecklist] = useState(() => readStore('cd_checklist', initialChecklist()));
   const [relatos, setRelatos] = useState(() => readStore('cd_relatos', initialRelatos()));
   const [pendencias, setPendencias] = useState(() => readStore('cd_pendencias', pendenciasSeed));
+  const [historicoPlantoes, setHistoricoPlantoes] = useState(() => readStore<HistoricoPlantao[]>('cd_historico_plantoes', []));
 
   const persistPendencias = (next: Pendencia[]) => {
     setPendencias(next);
@@ -100,15 +122,31 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
     escala,
     funcoes,
     escalaHoraria,
+    rondantes,
     checklist,
     relatos,
     pendencias,
+    historicoPlantoes,
     saveViatura(viatura) {
       const next = viatura.id
         ? viaturas.map((item) => (item.id === viatura.id ? normalizeViatura({ ...item, ...viatura, updated_at: new Date().toISOString() } as Viatura) : item))
         : [normalizeViatura({ ...viatura, id: uid('vtr'), updated_at: new Date().toISOString() }), ...viaturas];
       setViaturas(next);
       writeStore('cd_viaturas', next);
+      if (!viatura.id) {
+        const criada = next[0];
+        const nextRelatos = [{
+          id: `relato-${criada.id}`,
+          viatura_id: criada.id,
+          prefixo: criada.prefixo,
+          situacao: 'Operacional',
+          tem_novidade: false,
+          relato: '',
+          relato_anterior: 'Sem alteração registrada no plantão anterior.'
+        }, ...relatos];
+        setRelatos(nextRelatos);
+        writeStore('cd_relatos', nextRelatos);
+      }
     },
     saveSetor(setor) {
       const next = setor.id
@@ -140,74 +178,72 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
     },
     generateEscalaHoraria(options) {
       const inicioNoturno = options?.inicioNoturno ?? '23:00';
-      const criteriosHora = ['Motorista UR', 'Motorista AB', 'Motorista Canil'];
-      const elegiveisDaHora = funcoes.filter((funcao) => {
-        const text = funcao.funcao.toLowerCase();
-        const pertenceViaturaHora = /\bur\b/.test(text) || /\bab\b/.test(text) || text.includes('abs') || text.includes('canil') || /\bcn\b/.test(text);
-        return funcao.entra_escala_horaria && allowsEscalaHoraria(funcao.graduacao) && pertenceViaturaHora;
-      });
-      const limiteOperacional = Math.max(1, elegiveisDaHora.length || criteriosHora.length);
-      const quantidadeMilitares = Math.max(1, Math.min(options?.quantidadeMilitares ?? limiteOperacional, limiteOperacional));
-      const militaresDaNoite = Array.from({ length: quantidadeMilitares }, (_, index) => elegiveisDaHora[index] ?? {
-        militar_nome: `Definir ${criteriosHora[index % criteriosHora.length]}`,
-        graduacao: '',
-        funcao: criteriosHora[index % criteriosHora.length]
-      });
-      const telegrafista = funcoes.find((funcao) => funcao.funcao.toLowerCase().includes('telegraf')) ?? {
-        militar_nome: escala.telegrafista,
-        graduacao: '',
-        funcao: 'Telegrafista'
-      };
-      const inicioMinutos = inicioNoturno === '22:00' ? 22 * 60 : 23 * 60;
-      const fimMinutos = 24 * 60 + 6 * 60;
-      const duracaoBase = Math.floor((fimMinutos - inicioMinutos) / quantidadeMilitares);
-      const sobra = (fimMinutos - inicioMinutos) % quantidadeMilitares;
-      const linhasFixas: EscalaHoraria[] = inicioNoturno === '23:00'
-        ? [{
-            id: uid('horaria'),
-            escala_id: escala.id,
-            horario_inicio: '22:00',
-            horario_fim: '23:00',
-            militar_nome: telegrafista.militar_nome,
-            graduacao: telegrafista.graduacao,
-            funcao: 'Telegrafista',
-            observacao: 'Fixo'
-          }]
-        : [];
+      const guarnicaoHora: MembroBruto[] = funcoes
+        .map((funcao) => {
+          const viatura = viaturas.find((item) => funcao.funcao.toLowerCase().includes(item.prefixo.toLowerCase()));
+          const viaturaClasse = classeViatura(viatura);
+          return {
+            id: funcao.id,
+            nome: `${funcao.graduacao} PM ${funcao.militar_nome}`,
+            viatura: viaturaClasse,
+            funcao: funcao.funcao,
+            puxaHora: funcao.entra_escala_horaria && allowsEscalaHoraria(funcao.graduacao) && ['UR', 'ABS', 'CANIL'].includes(viaturaClasse)
+          };
+        })
+        .filter((membro) => membro.puxaHora);
 
-      const linhasMilitares = militaresDaNoite.map((funcao, index) => {
-        const minutosAnteriores = index * duracaoBase + Math.min(index, sobra);
-        const duracao = duracaoBase + (index < sobra ? 1 : 0);
-        const inicio = inicioMinutos + minutosAnteriores;
-        const fim = inicio + duracao;
+      const limiteOperacional = Math.max(1, guarnicaoHora.length);
+      const quantidadeMilitares = Math.max(1, Math.min(options?.quantidadeMilitares ?? limiteOperacional, limiteOperacional));
+      const linhas = gerarLinhasEscala({
+        guarnicao: guarnicaoHora.slice(0, quantidadeMilitares),
+        inicioNoturno,
+        telegrafista: escala.telegrafista
+      });
+
+      const next: EscalaHoraria[] = linhas.map((linha) => {
+        const militar = splitMilitarLabel(linha.militar);
         return {
           id: uid('horaria'),
           escala_id: escala.id,
-          horario_inicio: formatTime(inicio),
-          horario_fim: formatTime(fim),
-          militar_nome: funcao.militar_nome,
-          graduacao: funcao.graduacao,
-          funcao: funcao.funcao,
-          observacao: index < criteriosHora.length ? criteriosHora[index] : 'Rotativo'
+          horario_inicio: linha.inicio,
+          horario_fim: linha.fim,
+          militar_nome: militar.militar_nome,
+          graduacao: militar.graduacao,
+          funcao: linha.cobertura,
+          observacao: linha.criterio
         };
       });
-
-      const next: EscalaHoraria[] = [
-        ...linhasFixas,
-        ...linhasMilitares,
-        {
-          id: uid('horaria'),
-          escala_id: escala.id,
-          horario_inicio: '06:00',
-          horario_fim: '07:30',
-          militar_nome: telegrafista.militar_nome,
-          graduacao: telegrafista.graduacao,
-          funcao: 'Telegrafista',
-          observacao: 'Fixo'
-        }
-      ];
       setEscalaHoraria(next);
       writeStore('cd_escala_horaria', next);
+    },
+    updateEscalaHoraria(id, patch) {
+      const next = escalaHoraria.map((item) => item.id === id ? { ...item, ...patch } : item);
+      setEscalaHoraria(next);
+      writeStore('cd_escala_horaria', next);
+    },
+    generateRondantes() {
+      const guarnicao: MembroBruto[] = funcoes.map((funcao) => {
+        const viatura = viaturas.find((item) => funcao.funcao.toLowerCase().includes(item.prefixo.toLowerCase()));
+        return {
+          id: funcao.id,
+          nome: `${funcao.graduacao} PM ${funcao.militar_nome}`,
+          funcao: funcao.funcao,
+          viatura: classeViatura(viatura)
+        };
+      });
+      const next = gerarRondantes(guarnicao).map((item) => ({
+        id: uid('rondante'),
+        horario_inicio: item.inicio,
+        horario_fim: item.fim,
+        militar_nome: item.militar
+      }));
+      setRondantes(next);
+      writeStore('cd_rondantes', next);
+    },
+    updateRondante(id, patch) {
+      const next = rondantes.map((item) => item.id === id ? { ...item, ...patch } : item);
+      setRondantes(next);
+      writeStore('cd_rondantes', next);
     },
     updateChecklist(item) {
       const nextChecklist = checklist.map((current) => (current.id === item.id ? item : current));
@@ -215,8 +251,15 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
       writeStore('cd_checklist', nextChecklist);
 
       if (item.status === 'Com alteração') {
-        const exists = pendencias.some((pendencia) => pendencia.origem_id === item.id);
-        if (!exists) {
+        const existente = pendencias.find((pendencia) => pendencia.origem_id === item.id);
+        if (existente) {
+          persistPendencias(pendencias.map((pendencia) => pendencia.id === existente.id ? {
+            ...pendencia,
+            descricao: item.observacao || `Alteração registrada em ${item.setor_nome}.`,
+            foto_url: item.foto_url,
+            updated_at: new Date().toISOString()
+          } : pendencia));
+        } else {
           persistPendencias([
             {
               id: uid('pend'),
@@ -245,8 +288,14 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
       writeStore('cd_relatos', nextRelatos);
 
       if (relato.tem_novidade) {
-        const exists = pendencias.some((pendencia) => pendencia.origem_id === relato.id);
-        if (!exists) {
+        const existente = pendencias.find((pendencia) => pendencia.origem_id === relato.id);
+        if (existente) {
+          persistPendencias(pendencias.map((pendencia) => pendencia.id === existente.id ? {
+            ...pendencia,
+            descricao: relato.relato || `Novidade registrada na viatura ${relato.prefixo}.`,
+            updated_at: new Date().toISOString()
+          } : pendencia));
+        } else {
           persistPendencias([
             {
               id: uid('pend'),
@@ -269,16 +318,38 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
       }
     },
     updatePendencia(id, status, descricao) {
+      const textoHistorico = descricao.trim();
       const next = pendencias.map((pendencia) => {
         if (pendencia.id !== id) return pendencia;
+        if (pendencia.status === status && !textoHistorico) return pendencia;
         return {
           ...pendencia,
           status,
           updated_at: new Date().toISOString(),
-          historico: [...pendencia.historico, descricao || `Status atualizado para ${status}.`]
+          historico: [...pendencia.historico, textoHistorico || `Status atualizado para ${status}.`]
         };
       });
       persistPendencias(next);
+    },
+    addPendencias(entradas) {
+      const novas: Pendencia[] = entradas
+        .filter((e) => !pendencias.some((p) => p.origem_id === e.origem_id))
+        .map((e) => ({
+          id: uid('pend'),
+          origem: e.origem,
+          origem_id: e.origem_id,
+          tipo: e.tipo,
+          alvo: e.alvo,
+          descricao: e.descricao,
+          prontidao_id: escala.prontidao_id,
+          responsavel: escala.cabo_dia,
+          status: 'Aberta' as const,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          historico: ['Pendência criada automaticamente pela Passagem 360.']
+        }));
+      if (novas.length > 0) persistPendencias([...novas, ...pendencias]);
+      return novas.length;
     },
     archiveViatura(id, transferidaPara, observacao) {
       const next: Viatura[] = viaturas.map((viatura) => {
@@ -299,8 +370,24 @@ export function OperationalProvider({ children }: { children: ReactNode }) {
       const next = viaturas.filter((viatura) => viatura.id !== id);
       setViaturas(next);
       writeStore('cd_viaturas', next);
+    },
+    encerrarPlantao() {
+      const snapshot: HistoricoPlantao = {
+        id: uid('plantao'),
+        encerrado_em: new Date().toISOString(),
+        escala: { ...escala },
+        funcoes: funcoes.map((item) => ({ ...item })),
+        escala_horaria: escalaHoraria.map((item) => ({ ...item })),
+        rondantes: rondantes.map((item) => ({ ...item })),
+        relatos: relatos.map((item) => ({ ...item })),
+        pendencias: pendencias.map((item) => ({ ...item, historico: [...item.historico] }))
+      };
+      const next = [snapshot, ...historicoPlantoes];
+      setHistoricoPlantoes(next);
+      writeStore('cd_historico_plantoes', next);
+      return snapshot;
     }
-  }), [checklist, escala, escalaHoraria, funcoes, pendencias, relatos, setores, viaturas]);
+  }), [checklist, escala, escalaHoraria, funcoes, historicoPlantoes, pendencias, relatos, rondantes, setores, viaturas]);
 
   return <OperationalContext.Provider value={value}>{children}</OperationalContext.Provider>;
 }

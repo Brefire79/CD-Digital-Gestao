@@ -25,6 +25,13 @@ export function getCurrentProntidaoName() {
   return getProntidaoForDate(new Date());
 }
 
+export function formatarDataOperacional(date = new Date()): string {
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = date.toLocaleDateString('pt-BR', { month: 'long' });
+  const mesFormatado = mes.charAt(0).toUpperCase() + mes.slice(1);
+  return `${dia} de ${mesFormatado} de ${date.getFullYear()}`;
+}
+
 export function buildMonthlyScale(year: number, monthIndex: number) {
   const first = new Date(year, monthIndex, 1);
   const firstWeekday = first.getDay();

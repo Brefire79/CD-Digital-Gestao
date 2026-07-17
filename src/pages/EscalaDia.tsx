@@ -7,6 +7,7 @@ import { Select } from '../components/Select';
 import { TextArea } from '../components/TextArea';
 import { StatusBadge } from '../components/StatusBadge';
 import { useOperational } from '../contexts/OperationalContext';
+import { usePassagem } from '../store/passagem';
 import type { EscalaFuncao, Viatura } from '../types/domain';
 
 const funcoesViatura = ['CMT', 'MOT', 'AUX', 'AUX', 'Estagiário'];
@@ -37,6 +38,7 @@ function canEnterHora(funcao: EscalaFuncao, viaturas: Viatura[]) {
 
 export function EscalaDia() {
   const { escala, prontidoes, funcoes, viaturas, saveEscala, saveFuncao, deleteFuncao } = useOperational();
+  const sincronizarOperacao = usePassagem((state) => state.sincronizarOperacao);
   const [draft, setDraft] = useState(escala);
   const [militar, setMilitar] = useState('');
   const [graduacao, setGraduacao] = useState('Sd');
@@ -55,6 +57,8 @@ export function EscalaDia() {
   function handleEscala(event: FormEvent) {
     event.preventDefault();
     saveEscala(draft);
+    const prontidao = prontidoes.find((item) => item.id === draft.prontidao_id)?.nome ?? 'Amarela';
+    sincronizarOperacao(draft, funcoes, viaturas, prontidao);
   }
 
   function handleFuncao(event: FormEvent) {
@@ -90,7 +94,7 @@ export function EscalaDia() {
           <div className="sm:col-span-2">
             <TextArea label="Alterações de Serviço / Manutenção do Quartel" value={draft.observacoes} onChange={(event) => setDraft({ ...draft, observacoes: event.target.value })} />
           </div>
-          <Button className="sm:col-span-2">Salvar escala do dia</Button>
+          <Button className="sm:col-span-2">Salvar e sincronizar com a Passagem 360</Button>
         </form>
       </Card>
 

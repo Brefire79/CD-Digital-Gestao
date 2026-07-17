@@ -1,85 +1,20 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { FormInput } from '../components/FormInput';
 import { Select } from '../components/Select';
 import { StatusBadge } from '../components/StatusBadge';
 import { useOperational } from '../contexts/OperationalContext';
+import { gerarLinhasEscala } from '../lib/escalaGenerator';
+import { readStore, writeStore } from '../lib/storage';
 import type { EscalaHoraria as EscalaHorariaItem, EscalaFuncao } from '../types/domain';
 
-const dayRows = [
-  { horario_inicio: '07:30', horario_fim: '12:00', militar_nome: 'Telegrafista', funcao: 'Telegrafista', observacao: 'Fixo' },
-  { horario_inicio: '12:00', horario_fim: '14:00', militar_nome: 'Auxiliar do Auto Bomba', funcao: 'Alimentação', observacao: 'Revezamento 2x1' },
-  { horario_inicio: '14:00', horario_fim: '16:00', militar_nome: 'Auxiliar do Auto Bomba', funcao: 'Alimentação', observacao: 'Alternado pelo Canil' },
-  { horario_inicio: '16:00', horario_fim: '17:00', militar_nome: 'Telegrafista', funcao: 'Telegrafista', observacao: 'Fixo' },
-  { horario_inicio: '17:00', horario_fim: '18:00', militar_nome: 'Escolha do Cabo de Dia', funcao: 'Definir no plantão', observacao: 'Aberto' },
-  { horario_inicio: '18:00', horario_fim: '22:00', militar_nome: 'Telegrafista', funcao: 'Telegrafista', observacao: 'Fixo' }
-];
-
-function buildPreviewNightRows(inicioNoturno: '22:00' | '23:00') {
-  const startsAt23 = inicioNoturno === '23:00';
-  const rows: EscalaHorariaItem[] = [];
-
-  if (startsAt23) {
-    rows.push({
-      id: 'preview-fixed-22',
-      escala_id: 'preview',
-      horario_inicio: '22:00',
-      horario_fim: '23:00',
-      militar_nome: 'Telegrafista',
-      graduacao: '',
-      funcao: 'Telegrafista',
-      observacao: 'Fixo'
-    });
-  }
-
-  const slots = startsAt23
-    ? [['23:00', '00:10'], ['00:10', '01:20'], ['01:20', '02:30'], ['02:30', '03:40'], ['03:40', '04:50'], ['04:50', '06:00']]
-    : [['22:00', '23:08'], ['23:08', '00:16'], ['00:16', '01:24'], ['01:24', '02:32'], ['02:32', '03:40'], ['03:40', '04:48'], ['04:48', '06:00']];
-
-  slots.forEach(([inicio, fim], index) => {
-    const criterio = index === 0 ? 'Motorista UR' : index === 1 ? 'Motorista AB' : index === 2 ? 'Motorista Canil' : 'Rotativo';
-    rows.push({
-      id: `preview-${inicio}`,
-      escala_id: 'preview',
-      horario_inicio: inicio,
-      horario_fim: fim,
-      militar_nome: index < 3 ? `Definir ${criterio}` : 'Definir pelo Cabo de Dia',
-      graduacao: '',
-      funcao: criterio,
-      observacao: criterio
-    });
-  });
-
-  rows.push({
-    id: 'preview-fixed-06',
-    escala_id: 'preview',
-    horario_inicio: '06:00',
-    horario_fim: '07:30',
-    militar_nome: 'Telegrafista',
-    graduacao: '',
-    funcao: 'Telegrafista',
-    observacao: 'Fixo'
-  });
-
-  return rows;
-}
-
 function displayMilitar(item: Pick<EscalaHorariaItem, 'graduacao' | 'militar_nome'>) {
-  return `${item.graduacao ? `${item.graduacao} PM ` : ''}${item.militar_nome}`;
-}
-
-function hasGraduacao(row: unknown): row is Pick<EscalaHorariaItem, 'graduacao' | 'militar_nome'> {
-  return typeof row === 'object' && row !== null && 'graduacao' in row && typeof (row as { graduacao?: unknown }).graduacao === 'string';
+  return `${item.graduacao ? `${item.graduacao} PM ` : ''}${item.militar_nome || 'Definir pelo Cabo de Dia'}`;
 }
 
 function formatMilitar(item: Pick<EscalaFuncao, 'graduacao' | 'militar_nome'>) {
   return `${item.graduacao} PM ${item.militar_nome}`;
-}
-
-function isSargento(graduacao: string) {
-  const normalized = graduacao.toLowerCase();
-  return normalized.includes('sgt') || normalized.includes('sargento');
 }
 
 function isViaturaDaEscalaHoraria(viatura: { prefixo: string; tipo: string }) {
@@ -87,34 +22,85 @@ function isViaturaDaEscalaHoraria(viatura: { prefixo: string; tipo: string }) {
   return /\bur\b/.test(text) || /\bab\b/.test(text) || text.includes('abs') || text.includes('canil') || /\bcn\b/.test(text);
 }
 
+function belongsToViatura(funcao: EscalaFuncao, prefixo: string) {
+  return funcao.funcao.toLowerCase().includes(prefixo.toLowerCase());
+}
+
+function belongsToPapel(funcao: EscalaFuncao, papel: string) {
+  return funcao.funcao.toLowerCase().startsWith(papel.toLowerCase());
+}
+
+function nomesDaViatura(funcoes: EscalaFuncao[], prefixo: string, papel: string) {
+  const lancados = funcoes.filter((funcao) => belongsToViatura(funcao, prefixo) && belongsToPapel(funcao, papel));
+  return lancados.length > 0
+    ? lancados.map((funcao) => formatMilitar(funcao)).join(' / ')
+    : 'Definir pelo Cabo de Dia';
+}
+
 export function EscalaHoraria() {
-  const { escala, funcoes, escalaHoraria, generateEscalaHoraria, prontidoes, viaturas } = useOperational();
+  const {
+    escala,
+    funcoes,
+    escalaHoraria,
+    rondantes,
+    generateEscalaHoraria,
+    updateEscalaHoraria,
+    generateRondantes,
+    updateRondante,
+    prontidoes,
+    viaturas
+  } = useOperational();
   const [inicioNoturno, setInicioNoturno] = useState<'22:00' | '23:00'>('23:00');
-  const elegiveis = funcoes.filter((item) => item.entra_escala_horaria);
-  const bloqueados = funcoes.filter((item) => !item.entra_escala_horaria);
-  const quantidadeMaximaSugerida = Math.max(1, elegiveis.length, 3);
-  const [quantidadeMilitares, setQuantidadeMilitares] = useState(quantidadeMaximaSugerida);
-  const quantidadeValida = Math.max(1, Math.min(quantidadeMilitares, quantidadeMaximaSugerida));
+  const viaturasAtivas = viaturas.filter((viatura) => viatura.ativa);
+  const elegiveis = funcoes.filter((item) => {
+    const viatura = viaturasAtivas.find((viaturaAtiva) => belongsToViatura(item, viaturaAtiva.prefixo));
+    const graduacao = item.graduacao.trim().toLowerCase();
+    const sdOuCb = graduacao === 'sd' || graduacao === 'cb' || graduacao.includes('soldado') || graduacao.includes('cabo');
+    return Boolean(item.entra_escala_horaria && sdOuCb && viatura && isViaturaDaEscalaHoraria(viatura));
+  });
+  const bloqueados = funcoes.filter((item) => !elegiveis.some((elegivel) => elegivel.id === item.id));
+  const quantidadeMaximaSugerida = elegiveis.length;
+  const [quantidadeMilitares, setQuantidadeMilitares] = useState(Math.max(1, quantidadeMaximaSugerida));
+  const quantidadeValida = quantidadeMaximaSugerida === 0
+    ? 0
+    : Math.max(1, Math.min(quantidadeMilitares, quantidadeMaximaSugerida));
+  const [viaturasDocumentoIds, setViaturasDocumentoIds] = useState<string[]>(() => readStore('cd_viaturas_documento', []));
   const prontidao = prontidoes.find((item) => item.id === escala.prontidao_id)?.nome ?? 'Amarela';
-  const previewNightRows = buildPreviewNightRows(inicioNoturno);
-  const documentoRows = [...dayRows, ...previewNightRows];
+  const previewRows: EscalaHorariaItem[] = gerarLinhasEscala({ guarnicao: [], inicioNoturno, telegrafista: escala.telegrafista }).map((linha) => ({
+    id: linha.id,
+    escala_id: 'preview',
+    horario_inicio: linha.inicio,
+    horario_fim: linha.fim,
+    militar_nome: linha.militar || 'Definir pelo Cabo de Dia',
+    graduacao: '',
+    funcao: linha.cobertura,
+    observacao: linha.criterio
+  }));
+  const documentoRows = escalaHoraria.length > 0 ? escalaHoraria : previewRows;
   const comandante = escala.comandante || 'Cmt da Prontidão';
   const oficialArea = escala.oficial_area || 'Definir Tenente';
   const adjuntoDia = escala.adjunto_dia || funcoes.find((item) => item.funcao.toLowerCase().includes('adjunto'))?.militar_nome;
-  const sargentosRonda = funcoes.filter((item) => isSargento(item.graduacao));
-  const primeiroRondante = sargentosRonda[0] ? formatMilitar(sargentosRonda[0]) : 'Definir Sgt rondante';
-  const segundoRondante = sargentosRonda[1] ? formatMilitar(sargentosRonda[1]) : primeiroRondante;
-  const rondantes = primeiroRondante === segundoRondante
-    ? [{ horario_inicio: '00:00', horario_fim: '06:00', militar_nome: primeiroRondante }]
-    : [
-        { horario_inicio: '00:00', horario_fim: '03:00', militar_nome: primeiroRondante },
-        { horario_inicio: '03:00', horario_fim: '06:00', militar_nome: segundoRondante }
-      ];
-  const viaturasAtivas = viaturas.filter((viatura) => viatura.ativa);
   const viaturasHora = viaturasAtivas.filter(isViaturaDaEscalaHoraria);
-  const viaturasDocumento = viaturasAtivas.slice(0, 4);
+  const viaturasDocumento = viaturasDocumentoIds
+    .map((id) => viaturasAtivas.find((viatura) => viatura.id === id))
+    .filter((viatura): viatura is (typeof viaturasAtivas)[number] => Boolean(viatura));
+
+  useEffect(() => {
+    const idsValidos = viaturasDocumentoIds.filter((id) => viaturasAtivas.some((viatura) => viatura.id === id)).slice(0, 4);
+    if (idsValidos.length !== viaturasDocumentoIds.length) setViaturasDocumentoIds(idsValidos);
+    writeStore('cd_viaturas_documento', idsValidos);
+  }, [viaturasDocumentoIds, viaturasAtivas]);
+
+  function toggleViaturaDocumento(id: string) {
+    setViaturasDocumentoIds((atuais) => {
+      if (atuais.includes(id)) return atuais.filter((item) => item !== id);
+      if (atuais.length >= 4) return atuais;
+      return [...atuais, id];
+    });
+  }
   const resumo = useMemo(() => {
     const inicio = inicioNoturno === '22:00' ? '22h00' : '23h00';
+    if (quantidadeValida === 0) return 'Nenhum Sd/Cb vinculado a UR, ABS/AB ou Canil. Complete a Escala do Dia antes de gerar.';
     return `${quantidadeValida} militares dividindo o período de ${inicio} às 06h00. Telegrafista permanece fixo no último horário das 06h00 às 07h30.`;
   }, [inicioNoturno, quantidadeValida]);
 
@@ -136,11 +122,12 @@ export function EscalaHoraria() {
               label="Quantidade de militares"
               type="number"
               min={1}
-              max={quantidadeMaximaSugerida}
+              max={Math.max(1, quantidadeMaximaSugerida)}
               value={quantidadeMilitares}
+              disabled={quantidadeMaximaSugerida === 0}
               onChange={(event) => setQuantidadeMilitares(Number(event.target.value))}
             />
-            <Button onClick={() => generateEscalaHoraria({ inicioNoturno, quantidadeMilitares: quantidadeValida })}>Gerar escala noturna</Button>
+            <Button disabled={quantidadeValida === 0} onClick={() => generateEscalaHoraria({ inicioNoturno, quantidadeMilitares: quantidadeValida })}>Gerar escala noturna</Button>
           </div>
         </div>
       </Card>
@@ -169,22 +156,80 @@ export function EscalaHoraria() {
           </div>
         </Card>
       </div>
+      <Card>
+        <h3 className="font-bold">Viaturas no documento</h3>
+        <p className="mt-1 text-sm text-slate-400">O Cabo de Dia define até quatro viaturas. A ordem de seleção será a ordem das colunas.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {viaturasAtivas.map((viatura) => {
+            const selecionada = viaturasDocumentoIds.includes(viatura.id);
+            const limiteAtingido = viaturasDocumentoIds.length >= 4 && !selecionada;
+            return (
+              <button
+                key={viatura.id}
+                type="button"
+                disabled={limiteAtingido}
+                onClick={() => toggleViaturaDocumento(viatura.id)}
+                className={`min-h-12 rounded-lg border px-3 py-2 text-left text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-40 ${selecionada ? 'border-operacional-accent bg-operacional-accent text-slate-950' : 'border-slate-700 bg-slate-950 text-white'}`}
+              >
+                {selecionada ? `${viaturasDocumentoIds.indexOf(viatura.id) + 1}. ` : ''}{viatura.prefixo}
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+      {escalaHoraria.length > 0 && (
+        <Card>
+          <h3 className="mb-2 font-bold">Escala completa gerada</h3>
+          <p className="text-sm text-slate-400">A prévia do documento abaixo já está usando estes horários. Linhas em aberto continuam para ajuste manual do Cabo de Dia.</p>
+        </Card>
+      )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {escalaHoraria.map((item) => (
           <Card key={item.id}>
-            <p className="text-sm text-slate-400">Horário</p>
-            <h3 className="text-2xl font-black">{item.horario_inicio} - {item.horario_fim}</h3>
-            <p className="mt-3 font-bold">{item.graduacao} PM {item.militar_nome}</p>
-            <p className="text-sm text-slate-400">{item.funcao}</p>
-            <p className="mt-2 text-xs font-bold text-operacional-accent">{item.observacao}</p>
+            <div className="grid grid-cols-2 gap-2">
+              <FormInput label="Início" type="time" value={item.horario_inicio} onChange={(event) => updateEscalaHoraria(item.id, { horario_inicio: event.target.value })} />
+              <FormInput label="Fim" type="time" value={item.horario_fim} onChange={(event) => updateEscalaHoraria(item.id, { horario_fim: event.target.value })} />
+            </div>
+            <div className="mt-3 grid gap-2">
+              <FormInput label="Graduação" value={item.graduacao} placeholder="Sd, Cb, Sgt..." onChange={(event) => updateEscalaHoraria(item.id, { graduacao: event.target.value })} />
+              <FormInput label="Militar" value={item.militar_nome} onChange={(event) => updateEscalaHoraria(item.id, { militar_nome: event.target.value })} />
+              <FormInput label="Função" value={item.funcao} onChange={(event) => updateEscalaHoraria(item.id, { funcao: event.target.value })} />
+              <Select label="OBS" value={item.observacao} onChange={(event) => updateEscalaHoraria(item.id, { observacao: event.target.value })}>
+                {[item.observacao, 'Fixo', 'Rotativo', 'Motorista UR', 'Motorista AB', 'Motorista CN', 'Revezamento 2x1', 'Alternado pelo Canil', 'Telegrafista', 'Manual (Cabo de Dia)']
+                  .filter((value, index, values) => value && values.indexOf(value) === index)
+                  .map((value) => <option key={value}>{value}</option>)}
+              </Select>
+            </div>
           </Card>
         ))}
       </div>
       <Card>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-bold">Rondantes</h3>
+            <p className="text-sm text-slate-400">A geração automática considera somente Sgt. Todas as faixas permanecem editáveis.</p>
+          </div>
+          <Button type="button" variant="secondary" onClick={generateRondantes}>Gerar rondantes</Button>
+        </div>
+        {rondantes.length === 0 ? (
+          <p className="mt-3 rounded-lg bg-slate-950 p-3 text-sm text-slate-400">Nenhum Sgt disponível ou rondantes ainda não gerados.</p>
+        ) : (
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {rondantes.map((ronda) => (
+              <div key={ronda.id} className="grid gap-2 rounded-lg bg-slate-950 p-3 sm:grid-cols-[120px_120px_1fr]">
+                <FormInput label="Início" type="time" value={ronda.horario_inicio} onChange={(event) => updateRondante(ronda.id, { horario_inicio: event.target.value })} />
+                <FormInput label="Fim" type="time" value={ronda.horario_fim} onChange={(event) => updateRondante(ronda.id, { horario_fim: event.target.value })} />
+                <FormInput label="Sgt rondante" value={ronda.militar_nome} onChange={(event) => updateRondante(ronda.id, { militar_nome: event.target.value })} />
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+      <Card>
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-bold">Modelo do documento pronto</h3>
-            <p className="text-sm text-slate-400">Prévia visual para o futuro PDF A4 da escala completa.</p>
+            <p className="text-sm text-slate-400">Prévia visual da escala completa com guarnições reais lançadas na Escala do Dia.</p>
           </div>
           <span className="rounded-full bg-slate-950 px-3 py-2 text-xs font-bold text-operacional-accent">A4 vertical</span>
         </div>
@@ -242,7 +287,7 @@ export function EscalaHoraria() {
                       <td className="border border-slate-500">{row.horario_inicio}</td>
                       <td className="border border-slate-500">às</td>
                       <td className="border border-slate-500">{row.horario_fim}</td>
-                      <td className="border border-slate-500 text-left pl-2">{hasGraduacao(row) ? displayMilitar(row) : row.militar_nome}</td>
+                      <td className="border border-slate-500 text-left pl-2">{displayMilitar(row)}</td>
                       <td className="border border-slate-500">{row.funcao}</td>
                       <td className="border border-slate-500 font-bold">{row.observacao}</td>
                     </tr>
@@ -272,16 +317,18 @@ export function EscalaHoraria() {
                 <thead>
                   <tr className="bg-blue-100">
                     <th className="border border-slate-500">FUNÇÃO</th>
-                    {viaturasDocumento.map((viatura) => <th key={viatura.id} className="border border-slate-500">{viatura.prefixo}</th>)}
+                    {viaturasDocumento.length > 0
+                      ? viaturasDocumento.map((viatura) => <th key={viatura.id} className="border border-slate-500">{viatura.prefixo}</th>)
+                      : <th className="border border-slate-500">Definir VTRs</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {['CMT', 'MOT', 'AUX', 'AUX', 'Estagiário'].map((funcao, index) => (
                     <tr key={funcao + index}>
                       <td className="border border-slate-500 font-bold">{funcao}</td>
-                      {viaturasDocumento.map((viatura) => (
-                        <td key={`${viatura.id}-${funcao}`} className="border border-slate-500">Definir pelo Cabo de Dia</td>
-                      ))}
+                      {viaturasDocumento.length > 0 ? viaturasDocumento.map((viatura) => (
+                        <td key={`${viatura.id}-${funcao}`} className="border border-slate-500">{nomesDaViatura(funcoes, viatura.prefixo, funcao)}</td>
+                      )) : <td className="border border-slate-500">Definir pelo Cabo de Dia</td>}
                     </tr>
                   ))}
                 </tbody>

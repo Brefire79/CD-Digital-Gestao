@@ -1,6 +1,8 @@
-node_modules/
-dist/
-.vite/
+node_modules
+dist
+dist-ssr
+tmp
+*.local
 .env
 .env.local
 .env.*.local
@@ -8,3 +10,8 @@ dist/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+.vite
+
+# artefatos de build do vite config
+vite.config.js
+vite.config.d.ts
