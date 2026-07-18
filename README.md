@@ -9,7 +9,7 @@ MVP PWA para digitalizar passagem de serviço, escala do dia, escala horária, l
 - React Router
 - Zustand (store da Passagem 360, com persist)
 - pdf-lib (geração de PDF)
-- Supabase Auth, PostgreSQL e Storage
+- Firebase Auth, Firestore e Cloud Storage
 - PWA com `vite-plugin-pwa`
 
 ## Passagem 360
@@ -24,24 +24,28 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Preencha `.env.local` com as credenciais do Supabase:
+Preencha `.env.local` com as credenciais do Firebase (Configurações do projeto → Seus apps → SDK):
 
 ```bash
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
 VITE_GOOGLE_CLIENT_ID=
 ```
 
-Sem as variáveis do Supabase, o app abre em modo demonstração local. Sem `VITE_GOOGLE_CLIENT_ID`, o Livro permanece aberto no encerramento e informa que o backup obrigatório no Drive ainda não está configurado.
+Sem as variáveis do Firebase, o app abre em modo demonstração local. Sem `VITE_GOOGLE_CLIENT_ID`, o Livro permanece aberto no encerramento e informa que o backup obrigatório no Drive ainda não está configurado.
 
-## Supabase
+## Firebase
 
-1. Crie um projeto no Supabase.
-2. Execute `supabase/schema.sql` no SQL Editor.
-3. Crie usuários no Supabase Auth.
-4. Cadastre os perfis na tabela `profiles`.
+1. Crie um projeto no [console do Firebase](https://console.firebase.google.com) e registre um app Web.
+2. Ative o Firebase Auth com o provedor E-mail/senha e crie os usuários.
+3. Ative o Firestore e o Cloud Storage; publique as regras de `firebase/firestore.rules` e `firebase/storage.rules`.
+4. Cadastre os perfis na coleção `profiles` (um documento por `uid`, com `role`).
 
-O SQL inclui tabelas, seeds de prontidões e setores, RLS, bucket privado para anexos e gatilhos para criar pendências automaticamente quando houver alteração no checklist ou novidade em viatura.
+O modelo de dados completo (coleções, seeds de prontidões e setores, e as automações que criam pendências quando há alteração no checklist ou novidade em viatura) está documentado em `firebase/DATA-MODEL.md`. O estado da migração Supabase → Firebase está em `docs/Firebase-Migracao.md`.
 
 ## Telas
 

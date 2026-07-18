@@ -18,9 +18,9 @@ CD Digital - Gestao de Prontidao Operacional e um PWA para uso em quartel do Cor
 - React + Vite + TypeScript
 - Tailwind CSS
 - React Router
-- Supabase Auth
-- Supabase PostgreSQL
-- Supabase Storage
+- Firebase Auth
+- Firestore
+- Cloud Storage for Firebase
 - PWA mobile first
 
 ## Identidade do produto
@@ -91,7 +91,7 @@ Termos corretos:
 - Geracao da escala horaria considera apenas funcoes elegiveis associadas a UR, ABS/AB e Canil; se ainda nao houver guarnicao vinculada, usa placeholders "Definir Motorista UR/AB/Canil".
 - Viaturas possuem cadastro com editar e manter historico/transferencia; a interface nao exclui registros operacionais.
 - O Cabo de Dia seleciona e ordena ate quatro viaturas para as colunas do documento, com persistencia local da escolha.
-- PRD, schema Supabase e arquivos de orientacao devem ser mantidos sincronizados quando regra operacional mudar.
+- PRD, modelo de dados do Firebase (`firebase/DATA-MODEL.md`) e arquivos de orientacao devem ser mantidos sincronizados quando regra operacional mudar.
 
 ## Modulos do MVP
 
@@ -118,20 +118,24 @@ Termos corretos:
 
 ## Banco de dados
 
-O schema principal esta em `supabase/schema.sql`. Ele deve concentrar tabelas, RLS, triggers, seeds iniciais e regras criticas que nao podem depender apenas do frontend.
+O modelo de dados esta em `firebase/DATA-MODEL.md` (colecoes Firestore, seeds e automacoes) e as regras de acesso em `firebase/firestore.rules` e `firebase/storage.rules`. Regras criticas que nao podem depender apenas do frontend devem ser protegidas nas Security Rules e/ou em Cloud Functions.
 
-Ao alterar regras de negocio, atualize tambem o SQL quando a regra precisar ser protegida no banco.
+Ao alterar regras de negocio, atualize tambem o modelo de dados e as regras quando a regra precisar ser protegida no banco.
 
 ## PRD
 
 O PRD versionado esta em `PRD.md`. Atualize esse arquivo sempre que regras operacionais forem formalizadas.
 
-## Supabase
+## Firebase
 
-Nunca exponha service role key no frontend. Use somente variaveis publicas Vite:
+Nunca exponha credenciais de service account (Admin SDK) no frontend. Use somente variaveis publicas Vite:
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
 - `VITE_GOOGLE_CLIENT_ID`
 
 `VITE_GOOGLE_CLIENT_ID` exige Google Drive API e cliente OAuth Web com as origens autorizadas. Nunca usar Google client secret no frontend.

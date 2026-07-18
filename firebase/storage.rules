@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Anexos (fotos de checklist e pendencias) — equivalente ao antigo
+// bucket privado "cd-digital-anexos" do Supabase Storage.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /cd-digital-anexos/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

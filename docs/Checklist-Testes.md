@@ -62,9 +62,9 @@
 - [ ] Somente sucesso encerra o Livro e resolve a pendência.
 - [ ] Próximo plantão inicia limpo e preserva histórico anterior.
 
-## Supabase e segurança
+## Firebase e segurança
 
-- [ ] RLS revisada por perfil.
+- [ ] Security Rules do Firestore/Storage revisadas por perfil.
 - [ ] Nenhum secret ou token versionado.
 - [ ] Pendências e fechamento persistem entre dispositivos.
 - [ ] Migração do estado local antigo não perde registros.

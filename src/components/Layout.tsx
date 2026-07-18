@@ -33,7 +33,7 @@ export function Layout() {
               <Shield size={22} />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase text-operacional-accent">{demoMode ? 'Modo demonstração' : 'Supabase conectado'}</p>
+              <p className="text-xs font-semibold uppercase text-operacional-accent">{demoMode ? 'Modo demonstração' : 'Firebase conectado'}</p>
               <h2 className="text-lg font-bold">{titles[pathname] ?? 'CD Digital'}</h2>
             </div>
           </div>

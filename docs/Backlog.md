@@ -7,7 +7,7 @@
 - [ ] Testar criação das três pastas e substituição do PDF em conta real.
 - [ ] Validar visualmente todas as telas em celular.
 - [ ] Testar fechamento, reabertura do app e início do próximo plantão.
-- [ ] Revisar RLS do Supabase e permissões por perfil.
+- [ ] Revisar Security Rules do Firebase (Firestore/Storage) e permissões por perfil.
 - [ ] Confirmar persistência remota das pendências e histórico do Livro.
 
 ## P1 - Operação completa
@@ -19,7 +19,7 @@
 - [x] Gerar PDF próprio do Livro.
 - [x] Bloquear encerramento até backup confirmado no Drive.
 - [x] Registrar link e caminho do backup.
-- [ ] Persistir fechamento e metadados do Drive no Supabase.
+- [ ] Persistir fechamento e metadados do Drive no Firestore.
 - [ ] Exibir histórico de Livros encerrados em tela de consulta.
 
 ## P2 - Qualidade

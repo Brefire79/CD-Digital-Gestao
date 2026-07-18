@@ -1,0 +1,93 @@
+rules_version = '2';
+
+// Regras Firestore do CD Digital.
+// Reproduzem a semantica das antigas politicas RLS do Postgres:
+// - leitura liberada para qualquer usuario autenticado;
+// - escrita restrita por papel (role) armazenado em /profiles/{uid}.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userRole() == 'admin';
+    }
+
+    function hasRole(roles) {
+      return isSignedIn() && userRole() in roles;
+    }
+
+    match /profiles/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /prontidoes/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /viaturas/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /setoresQuartel/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /escalas/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if hasRole(['admin', 'cabo_dia']);
+      allow delete: if isAdmin();
+
+      match /funcoes/{funcaoId} {
+        allow read: if isSignedIn();
+        allow write: if hasRole(['admin', 'cabo_dia']);
+      }
+
+      match /escalaHoraria/{linhaId} {
+        allow read: if isSignedIn();
+        allow write: if hasRole(['admin', 'cabo_dia']);
+      }
+    }
+
+    match /passagensServico/{id} {
+      allow read: if isSignedIn();
+      allow write: if hasRole(['admin', 'cabo_dia', 'sgt']);
+
+      match /checklist/{itemId} {
+        allow read: if isSignedIn();
+        allow write: if hasRole(['admin', 'cabo_dia', 'sgt']);
+      }
+    }
+
+    match /livrosMotoristas/{id} {
+      allow read: if isSignedIn();
+      allow write: if hasRole(['admin', 'cabo_dia', 'motorista']);
+
+      match /relatosViaturas/{relatoId} {
+        allow read: if isSignedIn();
+        allow write: if hasRole(['admin', 'cabo_dia', 'motorista']);
+      }
+    }
+
+    match /pendencias/{id} {
+      allow read: if isSignedIn();
+      allow write: if hasRole(['admin', 'cabo_dia']);
+
+      match /historico/{eventoId} {
+        allow read: if isSignedIn();
+        allow create: if hasRole(['admin', 'cabo_dia']);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

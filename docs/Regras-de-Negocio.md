@@ -60,6 +60,6 @@
 
 ## Segurança
 
-- Nunca expor Supabase `service_role`, Google client secret, tokens ou senhas.
-- Usar apenas `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` e `VITE_GOOGLE_CLIENT_ID` no frontend.
-- Revisar RLS antes de produção.
+- Nunca expor credenciais de service account do Firebase (Admin SDK), Google client secret, tokens ou senhas.
+- Usar apenas as variáveis públicas `VITE_FIREBASE_*` e `VITE_GOOGLE_CLIENT_ID` no frontend.
+- Revisar Security Rules do Firestore/Storage antes de produção.

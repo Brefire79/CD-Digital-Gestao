@@ -1,10 +1,14 @@
-import { Session, User } from '@supabase/supabase-js';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut as firebaseSignOut, User } from 'firebase/auth';
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { firebaseAuth, isFirebaseConfigured } from '../lib/firebase';
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+}
 
 interface AuthContextValue {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
   loading: boolean;
   demoMode: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -13,58 +17,53 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function toAuthUser(firebaseUser: User): AuthUser {
+  return { id: firebaseUser.uid, email: firebaseUser.email };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [demoUser, setDemoUser] = useState<User | null>(() => {
-    return window.localStorage.getItem('cd_demo_auth') ? ({ id: 'demo-user', email: 'cabo.dia@quartel.local' } as User) : null;
+  const [demoUser, setDemoUser] = useState<AuthUser | null>(() => {
+    return window.localStorage.getItem('cd_demo_auth') ? { id: 'demo-user', email: 'cabo.dia@quartel.local' } : null;
   });
 
   useEffect(() => {
-    if (!supabase) {
+    if (!firebaseAuth) {
       setLoading(false);
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser) => {
+      setUser(firebaseUser ? toAuthUser(firebaseUser) : null);
       setLoading(false);
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-    });
-
-    return () => data.subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
     user: user ?? demoUser,
-    session,
     loading,
-    demoMode: !isSupabaseConfigured,
+    demoMode: !isFirebaseConfigured,
     async signIn(email: string, password: string) {
-      if (!supabase) {
+      if (!firebaseAuth) {
         window.localStorage.setItem('cd_demo_auth', email || 'demo');
-        setDemoUser({ id: 'demo-user', email: email || 'cabo.dia@quartel.local' } as User);
+        setDemoUser({ id: 'demo-user', email: email || 'cabo.dia@quartel.local' });
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
     },
     async signOut() {
-      if (!supabase) {
+      if (!firebaseAuth) {
         window.localStorage.removeItem('cd_demo_auth');
         setDemoUser(null);
         return;
       }
-      await supabase.auth.signOut();
+      await firebaseSignOut(firebaseAuth);
     }
-  }), [demoUser, loading, session, user]);
+  }), [demoUser, loading, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

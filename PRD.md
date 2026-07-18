@@ -18,10 +18,10 @@ Substituir controles em papel e comunicacao verbal por um sistema centralizado, 
 ## Stack Tecnologico
 
 - React + Vite + TypeScript
-- Supabase
-- PostgreSQL
-- Supabase Auth
-- Supabase Storage
+- Firebase
+- Firestore
+- Firebase Auth
+- Cloud Storage for Firebase
 - Tailwind CSS
 - PWA
 

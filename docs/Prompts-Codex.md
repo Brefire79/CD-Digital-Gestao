@@ -3,13 +3,13 @@
 ## Continuar a implementação
 
 ```text
-Continue o CD Digital a partir do estado atual, sem reiniciar o projeto. Leia AGENTS.md, claude.mb, agentes.mb, PRD.md, ROADMAP.md e docs/. Depois inspecione src/store/passagem.ts, src/components/passagem, src/lib/escalaGenerator.ts, src/lib/googleDrive.ts, src/lib/livroMotoristasPdf.ts, src/contexts/OperationalContext.tsx e supabase/schema.sql. Preserve as regras operacionais e valide com tsc -b e vite build.
+Continue o CD Digital a partir do estado atual, sem reiniciar o projeto. Leia AGENTS.md, claude.mb, agentes.mb, PRD.md, ROADMAP.md e docs/. Depois inspecione src/store/passagem.ts, src/components/passagem, src/lib/escalaGenerator.ts, src/lib/googleDrive.ts, src/lib/livroMotoristasPdf.ts, src/contexts/OperationalContext.tsx, src/lib/firebase.ts e firebase/DATA-MODEL.md. Preserve as regras operacionais e valide com tsc -b e vite build.
 ```
 
 ## Próxima prioridade recomendada
 
 ```text
-Implemente e valide a persistência Supabase do ciclo do Livro dos Motoristas e dos metadados do backup do Drive. Preserve o fallback local, não salve tokens OAuth e não permita que uma falha remota encerre o Livro. Atualize schema, RLS, documentação e testes.
+Implemente e valide a persistência Firestore do ciclo do Livro dos Motoristas e dos metadados do backup do Drive, conforme firebase/DATA-MODEL.md e docs/Firebase-Migracao.md. Preserve o fallback local, não salve tokens OAuth e não permita que uma falha remota encerre o Livro. Atualize modelo de dados, Security Rules, documentação e testes.
 ```
 
 ## Testar Google Drive
@@ -21,11 +21,11 @@ Configure VITE_GOOGLE_CLIENT_ID sem expor client secret. Valide em uma conta Goo
 ## Ajustar regra operacional
 
 ```text
-Altere a regra operacional [descrever]. Atualize código, supabase/schema.sql quando necessário, README.md, PRD.md, ROADMAP.md, claude.mb, agentes.mb, AGENTS.md e docs/. Não remova comportamento existente sem confirmação. Valide tipos, build e fluxo local.
+Altere a regra operacional [descrever]. Atualize código, firebase/DATA-MODEL.md e firebase/firestore.rules quando necessário, README.md, PRD.md, ROADMAP.md, claude.mb, agentes.mb, AGENTS.md e docs/. Não remova comportamento existente sem confirmação. Valide tipos, build e fluxo local.
 ```
 
 ## Auditoria antes de publicar
 
 ```text
-Audite o CD Digital para plantão piloto. Verifique autenticação, RLS, migração do localStorage, prontidão 24x48, escala 22h/23h, Telegrafista, rondantes, Livro, pendências, PDF, OAuth Drive, PWA mobile e recuperação de falhas. Liste bloqueadores antes de alterar e implemente correções pequenas com validação.
+Audite o CD Digital para plantão piloto. Verifique autenticação, Security Rules do Firestore/Storage, migração do localStorage, prontidão 24x48, escala 22h/23h, Telegrafista, rondantes, Livro, pendências, PDF, OAuth Drive, PWA mobile e recuperação de falhas. Liste bloqueadores antes de alterar e implemente correções pequenas com validação.
 ```

@@ -13,7 +13,7 @@ CD Digital - Gestao de Prontidao Operacional, um PWA mobile first para uso duran
 - React + Vite + TypeScript
 - Tailwind CSS
 - React Router
-- Supabase Auth, PostgreSQL e Storage
+- Firebase Auth, Firestore e Cloud Storage
 - PWA
 
 ## Regras de trabalho
@@ -22,7 +22,7 @@ CD Digital - Gestao de Prontidao Operacional, um PWA mobile first para uso duran
 - Nao use termos genericos como Task, Project ou Employee.
 - Priorize funcionalidade, clareza e poucos cliques.
 - Use cards grandes, botoes faceis de tocar e status claros.
-- Mantenha componentes em `src/components`, telas em `src/pages`, tipos em `src/types`, regras compartilhadas em `src/contexts` e schema em `supabase/schema.sql`.
+- Mantenha componentes em `src/components`, telas em `src/pages`, tipos em `src/types`, regras compartilhadas em `src/contexts` e modelo de dados/regras do Firebase em `firebase/` (`DATA-MODEL.md`, `firestore.rules`, `storage.rules`).
 - Atualize `PRD.md`, `README.md`, `ROADMAP.md`, `claude.mb` e `agentes.mb` quando uma regra operacional mudar.
 
 ## Regras operacionais criticas

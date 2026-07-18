@@ -6,7 +6,7 @@ Validar uma troca de serviço completa de 24 horas em celular, desde a montagem 
 
 ## Incluído
 
-- Login Supabase e modo demonstrativo local.
+- Login Firebase Auth e modo demonstrativo local.
 - Menu pós-login: Viaturas, Ronda Quartel, Escala de Hora, Livro dos Motoristas e Relatórios.
 - Prontidões Amarela, Azul e Verde em ciclo 24x48.
 - Viaturas com CMT, MOT, AUX, Estagiário e Telegrafista independente.
@@ -21,7 +21,7 @@ Validar uma troca de serviço completa de 24 horas em celular, desde a montagem 
 
 ## Dependências de ambiente
 
-- Supabase: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
+- Firebase: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID` e `VITE_FIREBASE_APP_ID`.
 - Google Drive: `VITE_GOOGLE_CLIENT_ID`, Drive API habilitada e origem OAuth autorizada.
 
 ## Não incluído

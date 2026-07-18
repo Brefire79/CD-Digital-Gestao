@@ -9,7 +9,7 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
           if (id.includes('react') || id.includes('scheduler')) return 'react-vendor';
-          if (id.includes('@supabase')) return 'supabase-vendor';
+          if (id.includes('firebase') || id.includes('@firebase')) return 'firebase-vendor';
           if (id.includes('lucide-react')) return 'icons-vendor';
           return undefined;
         }

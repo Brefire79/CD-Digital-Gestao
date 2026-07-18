@@ -80,7 +80,7 @@ Store: novos campos `escalaConfig.inicioNoturno`, `rondantes`, `header.telegrafi
 1. Vincular VTRs do Livro às viaturas reais cadastradas (e puxar a classe da VTR direto do vínculo, dispensando o select manual de classe na aba Escala).
 2. Evoluir o PDF para o modelo oficial fiel (uma página A4, layout do documento físico).
 3. Transformar o drawer de Configurações em telas reais.
-4. Persistência via Supabase/repository e calendário operacional.
+4. Persistência via Firebase (Firestore)/repository e calendário operacional.
 
 ## Fechamento do MVP operacional
 

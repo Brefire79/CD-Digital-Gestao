@@ -2,7 +2,7 @@
 
 ## Estado atual
 
-O CD Digital é um PWA mobile first em React, TypeScript e Vite para o plantão de 24 horas. Possui autenticação Supabase com modo demonstrativo local, contexto operacional persistido, fluxo Passagem 360 em Zustand, geração de PDFs e integração OAuth com Google Drive para o fechamento do Livro dos Motoristas.
+O CD Digital é um PWA mobile first em React, TypeScript e Vite para o plantão de 24 horas. Possui autenticação Firebase com modo demonstrativo local, contexto operacional persistido, fluxo Passagem 360 em Zustand, geração de PDFs e integração OAuth com Google Drive para o fechamento do Livro dos Motoristas.
 
 Fontes principais:
 
@@ -11,7 +11,8 @@ Fontes principais:
 - `src/lib/escalaGenerator.ts`: escala horária e rondantes.
 - `src/lib/livroMotoristasPdf.ts`: PDF próprio do Livro.
 - `src/lib/googleDrive.ts`: autenticação e backup no Google Drive.
-- `supabase/schema.sql`: persistência, RLS, gatilhos e auditoria do banco.
+- `src/lib/firebase.ts`: inicialização do Firebase (Auth).
+- `firebase/DATA-MODEL.md`, `firebase/firestore.rules`, `firebase/storage.rules`: persistência, regras de acesso, automações e auditoria do banco.
 
 ## Objetivo
 
@@ -101,6 +102,6 @@ Digitalizar a troca de serviço e a gestão da prontidão, reduzindo papel, retr
 ## Pendências para produção
 
 - Configurar o cliente OAuth e testar upload em uma conta Google real.
-- Completar a persistência Supabase dos fluxos que ainda usam fallback local.
-- Revisar RLS antes da publicação.
+- Completar a persistência Firestore dos fluxos que ainda usam fallback local.
+- Revisar as Security Rules do Firestore/Storage antes da publicação.
 - Executar QA visual mobile e teste completo de troca de plantão.

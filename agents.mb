@@ -7,7 +7,7 @@ Use o arquivo principal `agentes.mb` para as instrucoes completas em portugues.
 Resumo obrigatorio:
 
 - Projeto: CD Digital - Gestao de Prontidao Operacional.
-- Stack: React + Vite + TypeScript + Tailwind + Supabase.
+- Stack: React + Vite + TypeScript + Tailwind + Firebase.
 - Linguagem: operacional do Corpo de Bombeiros.
 - UX: mobile first, cards grandes, poucos cliques, status claros.
 - Escala do Dia: montagem do cabecalho e guarnicoes por viatura.
